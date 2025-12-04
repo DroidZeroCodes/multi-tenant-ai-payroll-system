@@ -201,17 +201,17 @@ Create `.env` file or set in `application.yml`
 - Development Environment: `application-dev.yml`
 - Production Environment: `application-prod.yml`
 
-# Database Configuration
+### Database Configuration
 Define the following environmental variables:
 - SPRING_DATASOURCE_USERNAME
 - SPRING_DATASOURCE_PASSWORD
 - SPRING_DATASOURCE_DB
 
-# Google Generative AI Configuration
+### Google Generative AI Configuration
 Define the following environmental variables:
 - ${GOOGLE_GENAI_API_KEY}
 
-# Monitoring
+### Monitoring
 The following endpoints have been exposed (add more as you see fit):
 - health
 - metrics
@@ -220,52 +220,52 @@ The following endpoints have been exposed (add more as you see fit):
 ## 🔌 API Endpoints
 
 ### Authentication
-POST /api/auth/token
+- POST /api/auth/token
 
 ### Tenant Management
 
-POST   /api/tenants                    # Create tenant 
-GET    /api/tenants/:id                # Get tenant 
-PUT    /api/tenants/:id                # Update tenant 
-GET    /api/tenants                    # List tenants (admin only)
-DELETE /api/tenants/:id                # Deactivate tenant
+- POST   /api/tenants                    # Create tenant 
+- GET    /api/tenants/:id                # Get tenant 
+- PUT    /api/tenants/:id                # Update tenant 
+- GET    /api/tenants                    # List tenants (admin only)
+- DELETE /api/tenants/:id                # Deactivate tenant
 
 ### Employee Management
 
-POST   /api/tenants/:tenantId/employees          # Add employee 
-GET    /api/tenants/:tenantId/employees/:id      # Get employee 
-PUT    /api/tenants/:tenantId/employees/:id      # Update employee 
-GET    /api/tenants/:tenantId/employees          # List employees (paginated)
-DELETE /api/tenants/:tenantId/employees/:id      # Soft delete
+- POST   /api/tenants/:tenantId/employees          # Add employee 
+- GET    /api/tenants/:tenantId/employees/:id      # Get employee 
+- PUT    /api/tenants/:tenantId/employees/:id      # Update employee 
+- GET    /api/tenants/:tenantId/employees          # List employees (paginated)
+- DELETE /api/tenants/:tenantId/employees/:id      # Soft delete
 
 ### Payroll Processing
 
-POST   /api/tenants/:tenantId/payroll-runs       # Create payroll run 
-GET    /api/tenants/:tenantId/payroll-runs/:id   # Get payroll details 
-PUT    /api/tenants/:tenantId/payroll-runs/:id/approve   # Approve payroll 
-GET    /api/tenants/:tenantId/payroll-runs       # List payroll runs 
-POST   /api/tenants/:tenantId/payroll-runs/:id/calculate # Calculate payroll
+- POST   /api/tenants/:tenantId/payroll-runs       # Create payroll run 
+- GET    /api/tenants/:tenantId/payroll-runs/:id   # Get payroll details 
+- PUT    /api/tenants/:tenantId/payroll-runs/:id/approve   # Approve payroll 
+- GET    /api/tenants/:tenantId/payroll-runs       # List payroll runs 
+- POST   /api/tenants/:tenantId/payroll-runs/:id/calculate # Calculate payroll
 
 ### Payments
 
-POST   /api/tenants/:tenantId/payments           # Initiate payment 
-GET    /api/tenants/:tenantId/payments/:id       # Get payment status 
-GET    /api/tenants/:tenantId/payments           # List payments (filterable)
+- POST   /api/tenants/:tenantId/payments           # Initiate payment 
+- GET    /api/tenants/:tenantId/payments/:id       # Get payment status 
+- GET    /api/tenants/:tenantId/payments           # List payments (filterable)
 
 ### Reports
 
-GET    /api/tenants/:tenantId/reports/payroll-summary   # Payroll summary 
-GET    /api/tenants/:tenantId/reports/pay-stub/:empId   # Employee pay stub 
-GET    /api/tenants/:tenantId/reports/attendance        # Attendance report
+- GET    /api/tenants/:tenantId/reports/payroll-summary   # Payroll summary 
+- GET    /api/tenants/:tenantId/reports/pay-stub/:empId   # Employee pay stub 
+- GET    /api/tenants/:tenantId/reports/attendance        # Attendance report
 
 ### AI Insights (New)
 
-POST   /api/tenants/:tenantId/ai/insights/payroll-anomalies
-# Request: { "payrollRunId": "...", "threshold": 0.85 }
-# Response: [{ "employeeId": "...", "anomaly": "high deduction", "confidence": 0.92 }]
+- POST   /api/tenants/:tenantId/ai/insights/payroll-anomalies 
+- Request: { "payrollRunId": "...", "threshold": 0.85 } 
+- Response: [{ "employeeId": "...", "anomaly": "high deduction", "confidence": 0.92 }]
 
-POST   /api/tenants/:tenantId/ai/recommendations/optimization
-# Get AI-powered payroll optimization suggestions
+- POST   /api/tenants/:tenantId/ai/recommendations/optimization
+- Get AI-powered payroll optimization suggestions
 
 ---
 
