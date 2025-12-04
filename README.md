@@ -201,17 +201,17 @@ Create `.env` file or set in `application.yml`
 - Development Environment: `application-dev.yml`
 - Production Environment: `application-prod.yml`
 
-# Database Configuration
+### Database Configuration
 Define the following environmental variables:
 - SPRING_DATASOURCE_USERNAME
 - SPRING_DATASOURCE_PASSWORD
 - SPRING_DATASOURCE_DB
 
-# Google Generative AI Configuration
+### Google Generative AI Configuration
 Define the following environmental variables:
 - ${GOOGLE_GENAI_API_KEY}
 
-# Monitoring
+### Monitoring
 The following endpoints have been exposed (add more as you see fit):
 - health
 - metrics
@@ -260,12 +260,12 @@ GET    /api/tenants/:tenantId/reports/attendance        # Attendance report
 
 ### AI Insights (New)
 
-POST   /api/tenants/:tenantId/ai/insights/payroll-anomalies
-# Request: { "payrollRunId": "...", "threshold": 0.85 }
-# Response: [{ "employeeId": "...", "anomaly": "high deduction", "confidence": 0.92 }]
+POST   /api/tenants/:tenantId/ai/insights/payroll-anomalies 
+Request: { "payrollRunId": "...", "threshold": 0.85 } 
+Response: [{ "employeeId": "...", "anomaly": "high deduction", "confidence": 0.92 }]
 
 POST   /api/tenants/:tenantId/ai/recommendations/optimization
-# Get AI-powered payroll optimization suggestions
+Get AI-powered payroll optimization suggestions
 
 ---
 
