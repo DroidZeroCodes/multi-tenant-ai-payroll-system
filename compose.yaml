@@ -1,12 +1,13 @@
 services:
   postgres:
     image: 'postgres:latest'
+    container_name: 'payroll-system-db'
     environment:
-      - 'POSTGRES_DB=mydatabase'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
+      - 'POSTGRES_USER=$SPRING_DATASOURCE_USERNAME'
+      - 'POSTGRES_PASSWORD=$SPRING_DATASOURCE_PASSWORD'
+      - 'POSTGRES_DB=$SPRING_DATASOURCE_DB'
     ports:
-      - '5432'
+      - '3003:5432'
   redis:
     image: 'redis:latest'
     ports:
