@@ -98,6 +98,53 @@ Database (PostgreSQL with tenant_id on all tables)
 
 ## 📊 Database Schema
 
+### Base Model
+All entities extend `BaseModel` which provides common fields:
+- `id`: Unique identifier (UUID)
+- `createdAt`: Timestamp of creation
+- `updatedAt`: Timestamp of last update
+- `createdBy`: User who created the record
+- `updatedBy`: User who last updated the record
+
+### Standardized Response Format
+All API responses follow the `Result<T>` pattern:
+```java
+public record Result<T>(
+    boolean flag,
+    String message,
+    T data
+) {
+    public static <T> ResponseEntity<Result<T>> success(String message, T data) {
+        return new ResponseEntity<>(new Result<>(true, message, data), HttpStatus.OK);
+    }
+    
+    // All other implementations...
+}
+```
+
+### Tenant Entity
+```java
+@Entity
+@Table(name = "tenants")
+public class Tenant extends BaseModel {
+    @Column(nullable = false, unique = true)
+    private String name;
+    
+    @Column(unique = true)
+    private String subdomain;
+    
+    @Column(name = "is_active")
+    private boolean active = true;
+    
+    // Getters, setters, and additional fields
+}
+```
+
+### Entity Relationships
+- All entities must extend `BaseModel` for auditing
+- Use `@CreatedBy` and `@LastModifiedBy` for user tracking
+- Foreign keys should include `tenant_id` for multi-tenancy
+
 ### Core Entities (15 Tables)
 
 **Tenant Management:**
