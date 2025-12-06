@@ -122,8 +122,6 @@ public class ExceptionHandlerAdvice {
         return ResponseFactory.error(e.getMessage(), errors);
     }
 
-
-
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseFactory<Object> handleOtherExceptions(Exception e) {

@@ -1,0 +1,9 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+  ai:
+    google:
+      genai:
+        api-key: NONE_FOR_TEST
