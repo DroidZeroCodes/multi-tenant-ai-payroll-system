@@ -264,6 +264,51 @@ The following endpoints have been exposed (add more as you see fit):
 - metrics
 - prometheus
 
+## API Response Structure
+
+### Success Response
+```json
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    // Response data object
+  },
+  "errors": null
+}
+```
+
+### Error Response
+```json
+{
+  "success": false,
+  "message": "Failed to process request",
+  "data": null,
+  "errors": [
+    {
+      "status": "BAD_REQUEST",
+      "code": "VALIDATION_ERROR",
+      "title": "Validation Error",
+      "detail": "Name must not be blank",
+      "source": {
+        "pointer": "/name"
+      }
+    }
+  ]
+}
+```
+
+### Common HTTP Status Codes
+- `200 OK`: Successful GET, PUT, or PATCH requests
+- `201 Created`: Resource successfully created
+- `204 No Content`: Successful DELETE requests
+- `400 Bad Request`: Invalid request format or validation errors
+- `401 Unauthorized`: Authentication required
+- `403 Forbidden`: Insufficient permissions
+- `404 Not Found`: Resource not found
+- `409 Conflict`: Resource conflict (e.g., duplicate entry)
+- `500 Internal Server Error`: Server-side error
+
 ## 🔌 API Endpoints
 
 ### Authentication
