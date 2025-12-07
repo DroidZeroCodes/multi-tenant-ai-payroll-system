@@ -37,4 +37,8 @@ public class Tenant extends BaseModel {
     private boolean active = true;
 
 
+    public boolean toggleActiveStatus() {
+        this.active = !this.active;
+        return this.active;
+    }
 }

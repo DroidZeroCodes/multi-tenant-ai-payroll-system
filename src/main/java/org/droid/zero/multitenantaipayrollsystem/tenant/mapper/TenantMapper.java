@@ -1,7 +1,7 @@
 package org.droid.zero.multitenantaipayrollsystem.tenant.mapper;
 
 import org.droid.zero.multitenantaipayrollsystem.tenant.Tenant;
-import org.droid.zero.multitenantaipayrollsystem.tenant.dto.CreateTenantRequest;
+import org.droid.zero.multitenantaipayrollsystem.tenant.dto.TenantRequest;
 import org.droid.zero.multitenantaipayrollsystem.tenant.dto.TenantResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
@@ -14,5 +14,5 @@ public interface TenantMapper {
 
     List<TenantResponse> toResponse(List<Tenant> tenants);
 
-    Tenant toEntity(CreateTenantRequest createTenantRequest);
+    Tenant toEntity(TenantRequest tenantRequest);
 }

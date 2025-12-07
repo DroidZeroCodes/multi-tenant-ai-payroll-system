@@ -3,9 +3,8 @@ package org.droid.zero.multitenantaipayrollsystem.tenant;
 import lombok.RequiredArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.system.util.FieldDuplicateValidator;
-import org.droid.zero.multitenantaipayrollsystem.tenant.dto.CreateTenantRequest;
+import org.droid.zero.multitenantaipayrollsystem.tenant.dto.TenantRequest;
 import org.droid.zero.multitenantaipayrollsystem.tenant.dto.TenantResponse;
-import org.droid.zero.multitenantaipayrollsystem.tenant.dto.UpdateTenantRequest;
 import org.droid.zero.multitenantaipayrollsystem.tenant.mapper.TenantMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +31,7 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public TenantResponse save(CreateTenantRequest request) {
+    public TenantResponse save(TenantRequest request) {
         //Validate if the provided arguments does not violate unique constraints
         new FieldDuplicateValidator()
                 .addField(tenantRepository.existsByNameIgnoreCase(request.name()), "name")
@@ -51,7 +50,7 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public TenantResponse update(UpdateTenantRequest request, UUID tenantId) {
+    public TenantResponse update(TenantRequest request, UUID tenantId) {
         //Find the tenant to update, else throw an exception
         Tenant existingTenant = this.tenantRepository.findById(tenantId)
                 .orElseThrow(()-> new ObjectNotFoundException(TENANT, tenantId));
@@ -68,9 +67,17 @@ public class TenantServiceImpl implements TenantService {
         existingTenant.setEmail(request.email());
         existingTenant.setPhone(request.phone());
         existingTenant.setIndustry(request.industry());
-        existingTenant.setActive(request.active());
 
         //Directly returning the mapped model since it automatically persists the changes to the database
         return tenantMapper.toResponse(existingTenant);
+    }
+
+    @Override
+    public boolean toggleTenantStatus(UUID tenantId) {
+        //Find the tenant to update, else throw an exception
+        Tenant existingTenant = this.tenantRepository.findById(tenantId)
+                .orElseThrow(()-> new ObjectNotFoundException(TENANT, tenantId));
+
+        return existingTenant.toggleActiveStatus();
     }
 }

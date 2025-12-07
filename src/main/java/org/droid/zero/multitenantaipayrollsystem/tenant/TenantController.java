@@ -3,9 +3,9 @@ package org.droid.zero.multitenantaipayrollsystem.tenant;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.system.api.ResponseFactory;
-import org.droid.zero.multitenantaipayrollsystem.tenant.dto.CreateTenantRequest;
+import org.droid.zero.multitenantaipayrollsystem.tenant.dto.TenantRequest;
 import org.droid.zero.multitenantaipayrollsystem.tenant.dto.TenantResponse;
-import org.droid.zero.multitenantaipayrollsystem.tenant.dto.UpdateTenantRequest;
+import org.droid.zero.multitenantaipayrollsystem.tenant.dto.TenantStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +28,7 @@ public class TenantController {
 
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
-    private ResponseFactory<TenantResponse> addTenant(@Valid @RequestBody CreateTenantRequest newTenant) {
+    private ResponseFactory<TenantResponse> addTenant(@Valid @RequestBody TenantRequest newTenant) {
         TenantResponse savedTenant = this.tenantService.save(newTenant);
         return ResponseFactory.created(
                 "Create Success",
@@ -39,7 +39,7 @@ public class TenantController {
     @PutMapping("/{tenantId}")
     @ResponseStatus(HttpStatus.OK)
     private ResponseFactory<TenantResponse> updateTenant(
-            @Valid @RequestBody UpdateTenantRequest newTenant,
+            @Valid @RequestBody TenantRequest newTenant,
             @PathVariable UUID tenantId
     ) {
         TenantResponse savedTenant = this.tenantService.update(newTenant, tenantId);
@@ -48,4 +48,14 @@ public class TenantController {
                 savedTenant
         );
     }
+
+    @PatchMapping("/{tenantId}/status")
+    @ResponseStatus(HttpStatus.OK)
+    private ResponseFactory<TenantStatus> updateTenantStatus(@PathVariable UUID tenantId) {
+        return ResponseFactory.success(
+                "Update Success",
+                new TenantStatus(tenantId,this.tenantService.toggleTenantStatus(tenantId))
+        );
+    }
 }
+

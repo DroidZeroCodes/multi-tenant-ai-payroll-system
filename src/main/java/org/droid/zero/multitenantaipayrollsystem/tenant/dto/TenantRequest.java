@@ -3,7 +3,7 @@ package org.droid.zero.multitenantaipayrollsystem.tenant.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
-public record CreateTenantRequest(
+public record TenantRequest(
         @NotBlank(message = "tenant name is required")
         String name,
 
