@@ -9,11 +9,15 @@ import java.util.UUID;
 @Repository
 public interface TenantRepository extends JpaRepository<Tenant, UUID>, JpaSpecificationExecutor<Tenant> {
 
-    boolean existsByEmail(String email);
+    boolean existsByNameIgnoreCase(String name);
 
     boolean existsByEmailIgnoreCase(String email);
 
-    boolean existsByNameIgnoreCase(String name);
-
     boolean existsByPhone(String phone);
+
+    boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
+
+    boolean existsByEmailIgnoreCaseAndIdNot(String email, UUID id);
+
+    boolean existsByPhoneAndIdNot(String phone, UUID id);
 }

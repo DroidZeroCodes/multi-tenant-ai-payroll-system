@@ -6,7 +6,7 @@ import org.droid.zero.multitenantaipayrollsystem.system.ResourceType;
 @Getter
 public class ObjectNotFoundException extends RuntimeException {
     private final ResourceType resourceType;
-    public ObjectNotFoundException(ResourceType resourceType, String id) {
+    public ObjectNotFoundException(ResourceType resourceType, Object id) {
         super("Could not find " + resourceType + " with ID '" + id + "'.");
         this.resourceType = resourceType;
     }
