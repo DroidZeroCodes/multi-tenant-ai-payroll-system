@@ -1,11 +1,11 @@
 package org.droid.zero.multitenantaipayrollsystem.system.exceptions;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.system.api.ErrorObject;
+import org.droid.zero.multitenantaipayrollsystem.system.api.ErrorObject.Source;
 import org.droid.zero.multitenantaipayrollsystem.system.api.ResponseFactory;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,16 +22,17 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.springframework.http.HttpStatus.*;
+
 @RequiredArgsConstructor
 @RestControllerAdvice
 public class ExceptionHandlerAdvice {
-    private final ObjectMapper objectMapper;
 
     @ExceptionHandler(ObjectNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(NOT_FOUND)
     public ResponseFactory<Object> handleObjectNotFoundException(ObjectNotFoundException e) {
         ErrorObject error = new ErrorObject(
-                HttpStatus.NOT_FOUND,
+                NOT_FOUND,
                 "resource_not_found",
                 "Resource Not Found",
                 e.getMessage(),
@@ -43,7 +45,7 @@ public class ExceptionHandlerAdvice {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResponseFactory<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         List<ErrorObject> errors = new ArrayList<>();
 
@@ -53,11 +55,11 @@ public class ExceptionHandlerAdvice {
             String field = ((FieldError) error).getField();
             String detail = error.getDefaultMessage();
             errors.add(new ErrorObject(
-                    HttpStatus.BAD_REQUEST,
+                    BAD_REQUEST,
                     "invalid_format",
                     "Validation Failed",
                     detail,
-                    new ErrorObject.Source(field)
+                    new Source(field)
             ));
          });
         return ResponseFactory.error(
@@ -66,26 +68,44 @@ public class ExceptionHandlerAdvice {
         );
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public  ResponseFactory<Object> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        String variableName = e.getName();
+        String detail = e.getMostSpecificCause().getMessage() + " for method parameter '" + variableName + "'" ;
+        ErrorObject error = new ErrorObject(
+                BAD_REQUEST,
+                "invalid_format",
+                "Validation Failed",
+                detail,
+                new Source(variableName)
+        );
+        return ResponseFactory.error(
+                e.getMessage(),
+                Collections.singletonList(error)
+        );
+    }
+
     @ExceptionHandler(DuplicateResourceException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseStatus(CONFLICT)
     public ResponseFactory<Object> handleDuplicateResourceException(DuplicateResourceException e) {
         List<ErrorObject> errors = new ArrayList<>();
 
         e.getFields().forEach(field -> {
             String detail = "The provided '" + field + "' is already taken.";
             errors.add(new ErrorObject(
-                    HttpStatus.CONFLICT,
+                    CONFLICT,
                     "duplicate_value",
                     "Validation Failed",
                     detail,
-                    new ErrorObject.Source(field)
+                    new Source(field)
             ));
         });
         return ResponseFactory.error(e.getMessage(), errors);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ResponseStatus(UNPROCESSABLE_ENTITY)
     public ResponseFactory<Object> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
         List<ErrorObject> errors = new ArrayList<>();
 
@@ -93,11 +113,11 @@ public class ExceptionHandlerAdvice {
         String detail = extractDetail(message);
 
         errors.add(new ErrorObject(
-           HttpStatus.UNPROCESSABLE_ENTITY,
+           UNPROCESSABLE_ENTITY,
            "integrity_violations",
                 "Unprocessable Entity",
                 detail,
-                new ErrorObject.Source(e.getMostSpecificCause().getCause().getMessage())
+                new Source(e.getMostSpecificCause().getCause().getMessage())
         ));
 
         return ResponseFactory.error(
@@ -107,31 +127,47 @@ public class ExceptionHandlerAdvice {
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+    @ResponseStatus(METHOD_NOT_ALLOWED)
     public  ResponseFactory<Object> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
         List<ErrorObject> errors = new ArrayList<>();
         String allowedMethods = Arrays.toString(e.getSupportedMethods());
         String detail = String.format("[%s] is not supported. Allowed methods: %s", e.getMethod(), allowedMethods);
         errors.add(new ErrorObject(
-                HttpStatus.METHOD_NOT_ALLOWED,
+                METHOD_NOT_ALLOWED,
                 "invalid_method",
                 "Method Not Allowed",
                 detail,
-                new ErrorObject.Source(e.getMethod())
+                new Source(e.getMethod())
         ));
         return ResponseFactory.error(e.getMessage(), errors);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ResponseFactory<Object> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        ErrorObject error = new ErrorObject(
+                BAD_REQUEST,
+                "invalid_format",
+                "Malformed API Request",
+                e.getMessage(),
+                new Source("request_body")
+        );
+        return ResponseFactory.error(
+                e.getMessage(),
+                Collections.singletonList(error)
+        );
+    }
+
     @ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(INTERNAL_SERVER_ERROR)
     public ResponseFactory<Object> handleOtherExceptions(Exception e) {
         List<ErrorObject> errors = new ArrayList<>();
         errors.add(new ErrorObject(
-                HttpStatus.INTERNAL_SERVER_ERROR,
+                INTERNAL_SERVER_ERROR,
                 "internal_server_error",
                 "Server Error",
                 e.getMessage(),
-                new ErrorObject.Source(e.getMessage())
+                new Source(e.getMessage())
         ));
         return ResponseFactory.error("An internal server error occurred.", errors);
     }
