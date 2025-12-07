@@ -8,5 +8,5 @@ public record TenantResponse(
         String email,
         String phone,
         String industry,
-        boolean active
+        Boolean active
 ) {}

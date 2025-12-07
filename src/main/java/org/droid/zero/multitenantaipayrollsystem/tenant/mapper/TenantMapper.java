@@ -11,6 +11,7 @@ import java.util.List;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface TenantMapper {
     TenantResponse toResponse(Tenant tenant);
+
     List<TenantResponse> toResponse(List<Tenant> tenants);
 
     Tenant toEntity(CreateTenantRequest createTenantRequest);
