@@ -23,11 +23,16 @@ public class TenantServiceImpl implements TenantService {
     private final TenantMapper tenantMapper;
 
     @Override
-    public TenantResponse findById(UUID tenantId) {
-        //Find the Tenant by its then map it to the response object if exists, if not, throw an exception
+    public Tenant findById(UUID tenantId) {
+        //Find the Tenant by its ID if it does not exist throw an exception
         return this.tenantRepository.findById(tenantId)
-                .map(tenantMapper::toResponse)
                 .orElseThrow(()-> new ObjectNotFoundException(TENANT, tenantId));
+    }
+
+    @Override
+    public TenantResponse findByIdResponse(UUID tenantId) {
+        //Use the findById method and map the result to the response dto then return
+        return tenantMapper.toResponse(findById(tenantId));
     }
 
     @Override
@@ -52,8 +57,7 @@ public class TenantServiceImpl implements TenantService {
     @Override
     public TenantResponse update(TenantRequest request, UUID tenantId) {
         //Find the tenant to update, else throw an exception
-        Tenant existingTenant = this.tenantRepository.findById(tenantId)
-                .orElseThrow(()-> new ObjectNotFoundException(TENANT, tenantId));
+        Tenant existingTenant = this.findById(tenantId);
 
         //Validate if the provided arguments does not violate unique constraints
         new FieldDuplicateValidator()

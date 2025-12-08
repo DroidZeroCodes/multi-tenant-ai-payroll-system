@@ -123,7 +123,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.errors[0].code").value("invalid_format"))
                 .andExpect(jsonPath("$.errors[0].title").value("Validation Failed"))
                 .andExpect(jsonPath("$.errors[*].detail",
-                        containsInAnyOrder("invalid email format", "tenant name is required")));
+                        containsInAnyOrder("invalid email format", "name is required")));
     }
 
     @Test

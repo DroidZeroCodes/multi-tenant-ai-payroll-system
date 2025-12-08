@@ -16,7 +16,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class BaseModel {
+public abstract class BaseModel {
     @Id
     @GeneratedValue()
     private UUID id;
@@ -24,7 +24,14 @@ public class BaseModel {
     @CreatedDate
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
+
     @LastModifiedDate
     @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    @Version
+    private Integer version;
 }
