@@ -24,7 +24,7 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public TenantResponse findById(UUID tenantId) {
-        //Find the Tenant by its then map it to the response object if exists, if not, throw an exception
+        //Find the Tenant by its ID then map it to the response object if exists, if not, throw an exception
         return this.tenantRepository.findById(tenantId)
                 .map(tenantMapper::toResponse)
                 .orElseThrow(()-> new ObjectNotFoundException(TENANT, tenantId));
