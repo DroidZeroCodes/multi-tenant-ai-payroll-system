@@ -6,7 +6,8 @@ import org.droid.zero.multitenantaipayrollsystem.tenant.dto.TenantResponse;
 import java.util.UUID;
 
 public interface TenantService {
-    TenantResponse findById(UUID tenantId);
+    Tenant findById(UUID tenantId);
+    TenantResponse findByIdResponse(UUID tenantId);
     TenantResponse save(TenantRequest request);
     TenantResponse update(TenantRequest request, UUID tenantId);
     boolean toggleTenantStatus(UUID tenantId);

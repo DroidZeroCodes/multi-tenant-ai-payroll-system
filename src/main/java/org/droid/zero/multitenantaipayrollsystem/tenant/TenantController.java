@@ -22,7 +22,7 @@ public class TenantController {
     public ResponseFactory<TenantResponse> findTenantById(@PathVariable() UUID tenantId) {
         return ResponseFactory.success(
                 "Find One Success",
-                tenantService.findById(tenantId)
+                tenantService.findByIdResponse(tenantId)
         );
     }
 

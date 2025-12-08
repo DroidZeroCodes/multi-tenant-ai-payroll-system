@@ -3,6 +3,8 @@ package org.droid.zero.multitenantaipayrollsystem.user;
 import lombok.RequiredArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.system.util.FieldDuplicateValidator;
+import org.droid.zero.multitenantaipayrollsystem.tenant.Tenant;
+import org.droid.zero.multitenantaipayrollsystem.tenant.TenantService;
 import org.droid.zero.multitenantaipayrollsystem.user.dto.UserRequest;
 import org.droid.zero.multitenantaipayrollsystem.user.dto.UserResponse;
 import org.droid.zero.multitenantaipayrollsystem.user.mapper.UserMapper;
@@ -20,6 +22,7 @@ import static org.droid.zero.multitenantaipayrollsystem.system.ResourceType.USER
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final TenantService tenantService;
     private final UserMapper userMapper;
 
     @Override
@@ -32,13 +35,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse save(UserRequest request) {
+        //Check if the tenant exists using the tenant service, it already throws an exception when not found
+        Tenant tenant = tenantService.findById(request.tenantId());
+
         //Validate if the provided arguments does not violate unique constraints
         new FieldDuplicateValidator()
                 .addField(userRepository.existsByEmailIgnoreCaseAndTenantId(request.email(), request.tenantId()), "email")
                 .validate(USER);
 
-        //Convert request to an entity to be persisted
+        //Convert request to an entity to be persisted and manually set the tenant
         User user = userMapper.toEntity(request);
+        user.setTenant(tenant);
 
         //Create the new record in the database
         User savedUser = this.userRepository.save(user);

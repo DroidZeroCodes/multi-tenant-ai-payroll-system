@@ -2,6 +2,7 @@ package org.droid.zero.multitenantaipayrollsystem.user;
 
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.DuplicateResourceException;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.tenant.TenantServiceImpl;
 import org.droid.zero.multitenantaipayrollsystem.user.dto.UserRequest;
 import org.droid.zero.multitenantaipayrollsystem.user.dto.UserResponse;
 import org.droid.zero.multitenantaipayrollsystem.user.mapper.UserMapper;
@@ -32,6 +33,9 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private TenantServiceImpl tenantService;
+
     private final UserMapper userMapper = Mappers.getMapper(UserMapper.class);
 
     private UserServiceImpl userService;
@@ -43,7 +47,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userService = new UserServiceImpl(userRepository, userMapper);
+        userService = new UserServiceImpl(userRepository, tenantService, userMapper);
 
         user = new User();
         user.setId(userId);

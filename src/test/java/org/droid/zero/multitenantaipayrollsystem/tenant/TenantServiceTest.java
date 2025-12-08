@@ -62,7 +62,7 @@ class TenantServiceTest {
         when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
 
         //Act
-        TenantResponse foundTenant = tenantService.findById(tenantId);
+        TenantResponse foundTenant = tenantService.findByIdResponse(tenantId);
 
         //Assert
         assertEquals(tenantId, foundTenant.id());

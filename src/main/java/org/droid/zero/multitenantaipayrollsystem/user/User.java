@@ -3,6 +3,7 @@ package org.droid.zero.multitenantaipayrollsystem.user;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.droid.zero.multitenantaipayrollsystem.system.BaseModel;
@@ -45,6 +46,7 @@ public class User extends BaseModel {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
+    @NotNull(message = "tenantId is required")
     private Tenant tenant;
 
     //    @Override

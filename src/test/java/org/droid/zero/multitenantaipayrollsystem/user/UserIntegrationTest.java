@@ -42,7 +42,7 @@ class UserIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("Check findUserById (GET)")
-    void findUserById() throws Exception {
+    void findUserById_Success() throws Exception {
         // Arrange
         User user = new User();
         user.setEmail("test@example.com");
@@ -131,12 +131,10 @@ class UserIntegrationTest extends BaseIntegrationTest {
                 null
         );
 
-        String invalidUserJson = objectMapper.writeValueAsString(request);
-
         // Act & Assert
         this.mockMvc.perform(post(this.getBaseUrl() + "/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidUserJson)
+                        .content(objectMapper.writeValueAsString(request))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
@@ -153,5 +151,72 @@ class UserIntegrationTest extends BaseIntegrationTest {
                                 "role is required",
                                 "tenantId is required"
                         )));
+    }
+
+    @Test
+    @DisplayName("Check email uniqueness is enforced per tenant")
+    void testEmailUniquenessPerTenant() throws Exception {
+        // Arrange - Create first user in tenant 1
+        UserRequest user1Request = new UserRequest(
+                "User",
+                "One",
+                "same@email.com",
+                "Password123!",
+                Set.of(UserRole.EMPLOYEE),
+                testTenant.getId()
+        );
+
+        // Act & Assert - First user creation should succeed
+        this.mockMvc.perform(post(this.getBaseUrl() + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user1Request))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+
+        // Arrange - Try to create another user with same email in same tenant
+        UserRequest duplicateEmailRequest = new UserRequest(
+                "User",
+                "Two",
+                "same@email.com",
+                "Password123!",
+                Set.of(UserRole.EMPLOYEE),
+                testTenant.getId()
+        );
+
+        // Act & Assert - Should fail with duplicate email error
+        this.mockMvc.perform(post(this.getBaseUrl() + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(duplicateEmailRequest))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message").value("An existing USER already exists with the provided arguments."));
+
+        // Arrange - Create a second tenant
+        Tenant secondTenant = new Tenant();
+        secondTenant.setName("Second Tenant");
+        secondTenant.setEmail("second@tenant.com");
+        secondTenant.setPhone("0987654321");
+        secondTenant.setIndustry("Finance");
+        secondTenant = tenantRepository.save(secondTenant);
+
+        // Arrange - Try to create user with same email but in different tenant
+        UserRequest differentTenantRequest = new UserRequest(
+                "User",
+                "Three",
+                "same@email.com",
+                "Password123!",
+                Set.of(UserRole.EMPLOYEE),
+                secondTenant.getId()
+        );
+
+        // Act & Assert - Should succeed as it's a different tenant
+        this.mockMvc.perform(post(this.getBaseUrl() + "/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(differentTenantRequest))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.email").value("same@email.com"));
     }
 }
