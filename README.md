@@ -272,7 +272,7 @@ The following endpoints have been exposed (add more as you see fit):
   "success": true,
   "message": "Operation completed successfully",
   "data": {
-    // Response data object
+    
   },
   "errors": null
 }
