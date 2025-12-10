@@ -7,3 +7,7 @@ spring:
     google:
       genai:
         api-key: NONE_FOR_TEST
+
+auth:
+  jwt:
+    secret: 56868fddf022cfa637637cf5613d97b5
