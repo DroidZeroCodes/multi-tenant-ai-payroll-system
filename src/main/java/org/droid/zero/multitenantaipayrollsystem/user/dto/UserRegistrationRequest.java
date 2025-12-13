@@ -1,5 +1,6 @@
 package org.droid.zero.multitenantaipayrollsystem.user.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.droid.zero.multitenantaipayrollsystem.security.auth.dto.CredentialsRegistrationRequest;
@@ -14,6 +15,7 @@ public record UserRegistrationRequest(
         String lastName,
 
         @NotNull(message = "credentials is required")
+        @Valid
         CredentialsRegistrationRequest credentials,
 
         @NotNull(message = "tenantId is required")

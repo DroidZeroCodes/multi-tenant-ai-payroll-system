@@ -39,7 +39,7 @@ public class Tenant extends BaseModel {
     private boolean active = true;
 
     @OneToMany(mappedBy = "tenant", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
-    private Set<User> userRespons = new HashSet<>();
+    private Set<User> user = new HashSet<>();
 
     public boolean toggleActiveStatus() {
         this.active = !this.active;

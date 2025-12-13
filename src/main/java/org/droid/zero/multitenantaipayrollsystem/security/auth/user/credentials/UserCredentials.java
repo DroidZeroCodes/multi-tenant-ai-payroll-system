@@ -1,5 +1,6 @@
 package org.droid.zero.multitenantaipayrollsystem.security.auth.user.credentials;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -64,6 +65,7 @@ public class UserCredentials extends BaseModel implements UserDetails {
         }
     }
 
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return role

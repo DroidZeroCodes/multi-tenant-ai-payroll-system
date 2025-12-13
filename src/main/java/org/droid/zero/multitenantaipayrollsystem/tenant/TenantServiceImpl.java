@@ -5,7 +5,9 @@ import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoun
 import org.droid.zero.multitenantaipayrollsystem.system.util.FieldDuplicateValidator;
 import org.droid.zero.multitenantaipayrollsystem.tenant.dto.TenantRequest;
 import org.droid.zero.multitenantaipayrollsystem.tenant.dto.TenantResponse;
+import org.droid.zero.multitenantaipayrollsystem.tenant.events.TenantCreatedEvent;
 import org.droid.zero.multitenantaipayrollsystem.tenant.mapper.TenantMapper;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,7 @@ public class TenantServiceImpl implements TenantService {
 
     private final TenantRepository tenantRepository;
     private final TenantMapper tenantMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public Tenant findById(UUID tenantId) {
@@ -49,6 +52,14 @@ public class TenantServiceImpl implements TenantService {
 
         //Create the new record in the database
         Tenant savedTenant = this.tenantRepository.save(tenant);
+
+        //Publish tenant creation event
+        eventPublisher.publishEvent(new TenantCreatedEvent(
+                savedTenant.getId(),
+                request.name(),
+                request.email(),
+                "admin" + request.email() + UUID.randomUUID().getLeastSignificantBits()
+        ));
 
         //Map the saved model to a response object, then return
         return tenantMapper.toResponse(savedTenant);
