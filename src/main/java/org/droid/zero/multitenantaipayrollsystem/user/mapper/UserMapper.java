@@ -1,10 +1,12 @@
 package org.droid.zero.multitenantaipayrollsystem.user.mapper;
 
 import org.droid.zero.multitenantaipayrollsystem.user.User;
-import org.droid.zero.multitenantaipayrollsystem.user.dto.UserRequest;
+import org.droid.zero.multitenantaipayrollsystem.user.dto.UserRegistrationRequest;
 import org.droid.zero.multitenantaipayrollsystem.user.dto.UserResponse;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.Mappings;
 
 import java.util.List;
 
@@ -14,5 +16,8 @@ public interface UserMapper {
 
     List<UserResponse> toResponse(List<User> users);
 
-    User toEntity(UserRequest userRequest);
+    @Mappings(
+            @Mapping(target = "email", source = "credentials.email")
+    )
+    User toEntity(UserRegistrationRequest userRegistrationRequest);
 }

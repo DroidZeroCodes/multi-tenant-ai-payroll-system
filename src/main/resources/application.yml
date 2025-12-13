@@ -6,12 +6,6 @@ spring:
   web:
     resources:
       add-mappings: false
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          authorities-claim-name: authorities
-          authority-prefix: ""
 
 api:
   endpoint:

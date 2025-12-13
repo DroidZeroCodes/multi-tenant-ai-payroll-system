@@ -6,6 +6,9 @@ import org.droid.zero.multitenantaipayrollsystem.system.api.ErrorObject.Source;
 import org.droid.zero.multitenantaipayrollsystem.system.api.ResponseFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -117,7 +120,7 @@ public class ExceptionHandlerAdvice {
            "integrity_violations",
                 "Unprocessable Entity",
                 detail,
-                new Source(e.getMostSpecificCause().getCause().getMessage())
+                new Source(e.getMostSpecificCause().getMessage())
         ));
 
         return ResponseFactory.error(
@@ -126,9 +129,72 @@ public class ExceptionHandlerAdvice {
         );
     }
 
+    @ExceptionHandler({
+            UsernameNotFoundException.class,
+            BadCredentialsException.class,
+    })
+    @ResponseStatus(UNAUTHORIZED)
+    public ResponseFactory<Object> handleAuthenticationException(Exception ex) {
+        return ResponseFactory.error(
+                "username or password is incorrect",
+                Collections.singletonList(new ErrorObject(
+                        UNAUTHORIZED,
+                        "bad_credentials",
+                        "Authentication Failed",
+                        ex.getMessage(),
+                        new Source("auth")
+                        ))
+        );
+    }
+
+    @ExceptionHandler(InsufficientAuthenticationException.class)
+    @ResponseStatus(UNAUTHORIZED)
+    public ResponseFactory<Object> handleInsufficientAuthenticationException(Exception ex) {
+        return ResponseFactory.error(
+                "Login credentials are missing",
+                Collections.singletonList(new ErrorObject(
+                        UNAUTHORIZED,
+                        "bad_credentials",
+                        "Authentication Failed",
+                        ex.getMessage(),
+                        new Source("auth")
+                ))
+        );
+    }
+
+    @ExceptionHandler(InvalidBearerTokenException.class)
+    @ResponseStatus(UNAUTHORIZED)
+    public ResponseFactory<Object> handleInvalidBearerTokenException(InvalidBearerTokenException ex) {
+        return ResponseFactory.error(
+                "The access token provided is expired, revoked, malformed, or invalid for other reasons.",
+                Collections.singletonList(new ErrorObject(
+                        UNAUTHORIZED,
+                        "bad_credentials",
+                        "Authentication Failed",
+                        ex.getMessage(),
+                        new Source("auth")
+                ))
+        );
+    }
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    @ResponseStatus(TOO_MANY_REQUESTS)
+    public ResponseFactory<Object> handleTooManyRequestsException(TooManyRequestsException ex) {
+        return ResponseFactory.error(
+                ex.getMessage(),
+                Collections.singletonList(new ErrorObject(
+                        TOO_MANY_REQUESTS,
+                        "rate_limit_exceeded",
+                        "Too Many Requests",
+                        ex.getMessage(),
+                        new Source("rate_limit")
+                ))
+        );
+    }
+
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(METHOD_NOT_ALLOWED)
-    public  ResponseFactory<Object> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
+    public ResponseFactory<Object> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
         List<ErrorObject> errors = new ArrayList<>();
         String allowedMethods = Arrays.toString(e.getSupportedMethods());
         String detail = String.format("[%s] is not supported. Allowed methods: %s", e.getMethod(), allowedMethods);

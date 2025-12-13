@@ -4,13 +4,16 @@ import org.droid.zero.multitenantaipayrollsystem.system.exceptions.DuplicateReso
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.tenant.dto.TenantRequest;
 import org.droid.zero.multitenantaipayrollsystem.tenant.dto.TenantResponse;
+import org.droid.zero.multitenantaipayrollsystem.tenant.events.TenantCreatedEvent;
 import org.droid.zero.multitenantaipayrollsystem.tenant.mapper.TenantMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -29,8 +32,10 @@ class TenantServiceTest {
     @Mock
     private TenantRepository tenantRepository;
 
-    private final TenantMapper tenantMapper = Mappers.getMapper(TenantMapper.class);
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
 
+    private final TenantMapper tenantMapper = Mappers.getMapper(TenantMapper.class);
     private TenantServiceImpl tenantService;
 
     private Tenant tenant;
@@ -39,7 +44,7 @@ class TenantServiceTest {
 
     @BeforeEach
     void setUp() {
-        tenantService = new TenantServiceImpl(tenantRepository, tenantMapper);
+        tenantService = new TenantServiceImpl(tenantRepository, tenantMapper, applicationEventPublisher);
 
         tenant = new Tenant();
         tenant.setId(tenantId);
@@ -94,6 +99,9 @@ class TenantServiceTest {
     @Test
     void save_shouldSaveAndReturnTenant_whenRequestIsValid() {
         //Arrange
+        when(tenantRepository.existsByNameIgnoreCase(anyString())).thenReturn(false);
+        when(tenantRepository.existsByEmailIgnoreCase(anyString())).thenReturn(false);
+        when(tenantRepository.existsByPhone(anyString())).thenReturn(false);
         when(tenantRepository.save(any(Tenant.class))).thenReturn(tenant);
 
         //Act
@@ -107,7 +115,20 @@ class TenantServiceTest {
         assertEquals(tenant.getPhone(), savedTenant.phone());
         assertTrue(savedTenant.active());
 
+        // Verify event was published
+        ArgumentCaptor<TenantCreatedEvent> eventCaptor = ArgumentCaptor.forClass(TenantCreatedEvent.class);
+        verify(applicationEventPublisher, times(1)).publishEvent(eventCaptor.capture());
+
+        TenantCreatedEvent capturedEvent = eventCaptor.getValue();
+        assertEquals(tenantId, capturedEvent.tenantId());
+        assertEquals(tenantRequest.name(), capturedEvent.name());
+        assertEquals(tenantRequest.email(), capturedEvent.email());
+        assertTrue(capturedEvent.generatedPassword().startsWith("admin" + tenantRequest.email()));
+
         verify(tenantRepository, times(1)).save(any(Tenant.class));
+        verify(tenantRepository, times(1)).existsByNameIgnoreCase(anyString());
+        verify(tenantRepository, times(1)).existsByEmailIgnoreCase(anyString());
+        verify(tenantRepository, times(1)).existsByPhone(anyString());
     }
 
     @Test
@@ -138,7 +159,35 @@ class TenantServiceTest {
         verify(tenantRepository, times(1)).existsByNameIgnoreCase(anyString());
         verify(tenantRepository, times(1)).existsByEmailIgnoreCase(anyString());
         verify(tenantRepository, times(1)).existsByPhone(anyString());
-        verifyNoMoreInteractions(tenantRepository);
+        verify(tenantRepository, never()).save(any(Tenant.class));
+        verify(applicationEventPublisher, never()).publishEvent(any(TenantCreatedEvent.class));
+    }
+
+    @Test
+    void save_shouldThrowException_whenNameAlreadyExists() {
+        //Arrange
+        when(tenantRepository.existsByNameIgnoreCase(anyString())).thenReturn(true);
+        when(tenantRepository.existsByEmailIgnoreCase(anyString())).thenReturn(false);
+        when(tenantRepository.existsByPhone(anyString())).thenReturn(false);
+
+        //Act
+        DuplicateResourceException thrown = catchThrowableOfType(
+                DuplicateResourceException.class,
+                ()-> tenantService.save(tenantRequest)
+        );
+
+        //Assert
+        assertThat(thrown)
+                .isNotNull()
+                .isInstanceOf(DuplicateResourceException.class)
+                .hasMessage("An existing TENANT already exists with the provided arguments.");
+
+        assertThat(thrown.getFields())
+                .containsExactly("name");
+
+        verify(tenantRepository, times(1)).existsByNameIgnoreCase(anyString());
+        verify(tenantRepository, times(1)).existsByEmailIgnoreCase(anyString());
+        verify(tenantRepository, times(1)).existsByPhone(anyString());
     }
 
     @Test
@@ -153,6 +202,9 @@ class TenantServiceTest {
         existingTenant.setIndustry("oldIndustry");
 
         when(tenantRepository.findById(existingTenantId)).thenReturn(Optional.of(existingTenant));
+        when(tenantRepository.existsByNameIgnoreCaseAndIdNot(anyString(), any(UUID.class))).thenReturn(false);
+        when(tenantRepository.existsByEmailIgnoreCaseAndIdNot(anyString(), any(UUID.class))).thenReturn(false);
+        when(tenantRepository.existsByPhoneAndIdNot(anyString(), any(UUID.class))).thenReturn(false);
 
         //Act
         TenantResponse updatedTenantResponse = tenantService.update(tenantRequest, existingTenantId);
@@ -160,16 +212,17 @@ class TenantServiceTest {
         //Assert
         assertNotNull(updatedTenantResponse);
         assertEquals(existingTenantId, updatedTenantResponse.id());
-        assertEquals(existingTenant.getName(), updatedTenantResponse.name());
-        assertEquals(existingTenant.getEmail(), updatedTenantResponse.email());
-        assertEquals(existingTenant.getPhone(), updatedTenantResponse.phone());
+        assertEquals(tenantRequest.name(), updatedTenantResponse.name());
+        assertEquals(tenantRequest.email(), updatedTenantResponse.email());
+        assertEquals(tenantRequest.phone(), updatedTenantResponse.phone());
+        assertEquals(tenantRequest.industry(), updatedTenantResponse.industry());
         assertTrue(updatedTenantResponse.active());
 
         verify(tenantRepository, times(1)).findById(existingTenantId);
         verify(tenantRepository, times(1)).existsByNameIgnoreCaseAndIdNot(anyString(), any(UUID.class));
         verify(tenantRepository, times(1)).existsByEmailIgnoreCaseAndIdNot(anyString(), any(UUID.class));
         verify(tenantRepository, times(1)).existsByPhoneAndIdNot(anyString(), any(UUID.class));
-        verifyNoMoreInteractions(tenantRepository);
+        verify(applicationEventPublisher, never()).publishEvent(any(TenantCreatedEvent.class));
     }
 
     @Test
@@ -194,7 +247,7 @@ class TenantServiceTest {
         //Arrange
         when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
         when(tenantRepository.existsByNameIgnoreCaseAndIdNot(anyString(), any(UUID.class))).thenReturn(true);
-        when(tenantRepository.existsByEmailIgnoreCaseAndIdNot(anyString(),any(UUID.class))).thenReturn(true);
+        when(tenantRepository.existsByEmailIgnoreCaseAndIdNot(anyString(), any(UUID.class))).thenReturn(true);
         when(tenantRepository.existsByPhoneAndIdNot(anyString(), any(UUID.class))).thenReturn(true);
 
         //Act
@@ -215,14 +268,12 @@ class TenantServiceTest {
         assertThat(thrown.getResourceType())
                 .isEqualTo(TENANT);
 
-
         verify(tenantRepository, times(1)).findById(tenantId);
         verify(tenantRepository, times(1)).existsByNameIgnoreCaseAndIdNot(anyString(), any(UUID.class));
         verify(tenantRepository, times(1)).existsByEmailIgnoreCaseAndIdNot(anyString(), any(UUID.class));
         verify(tenantRepository, times(1)).existsByPhoneAndIdNot(anyString(), any(UUID.class));
         verifyNoMoreInteractions(tenantRepository);
     }
-
 
     @Test
     void toggleTenantStatus_ShouldSaveAndReturnStatus_whenRequestIsValid() {
@@ -233,10 +284,28 @@ class TenantServiceTest {
         boolean updatedStatus = tenantService.toggleTenantStatus(tenantId);
 
         //Assert
-        assertFalse(updatedStatus);
+        assertFalse(updatedStatus); // Toggled from true to false
 
         verify(tenantRepository, times(1)).findById(tenantId);
         verifyNoMoreInteractions(tenantRepository);
+    }
+
+    @Test
+    void toggleTenantStatus_ShouldToggleMultipleTimes() {
+        //Arrange
+        when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
+
+        //Act - First toggle
+        boolean firstToggle = tenantService.toggleTenantStatus(tenantId);
+        // Simulate the second toggle by changing the tenant's state
+        tenant.setActive(false);
+        boolean secondToggle = tenantService.toggleTenantStatus(tenantId);
+
+        //Assert
+        assertFalse(firstToggle); // true -> false
+        assertTrue(secondToggle); // false -> true
+
+        verify(tenantRepository, times(2)).findById(tenantId);
     }
 
     @Test
@@ -254,5 +323,35 @@ class TenantServiceTest {
 
         verify(tenantRepository, times(1)).findById(tenantId);
         verifyNoMoreInteractions(tenantRepository);
+    }
+
+    @Test
+    void updateTenant_shouldUpdateIndustry_whenRequestIsValid() {
+        //Arrange
+        UUID existingTenantId = UUID.randomUUID();
+        Tenant existingTenant = new Tenant();
+        existingTenant.setId(existingTenantId);
+        existingTenant.setName("oldName");
+        existingTenant.setEmail("old@email.com");
+        existingTenant.setPhone("222222222");
+        existingTenant.setIndustry("oldIndustry");
+
+        TenantRequest updateRequest = new TenantRequest(
+                "newName",
+                "new@email.com",
+                "333333333",
+                "newIndustry"
+        );
+
+        when(tenantRepository.findById(existingTenantId)).thenReturn(Optional.of(existingTenant));
+        when(tenantRepository.existsByNameIgnoreCaseAndIdNot(anyString(), any(UUID.class))).thenReturn(false);
+        when(tenantRepository.existsByEmailIgnoreCaseAndIdNot(anyString(), any(UUID.class))).thenReturn(false);
+        when(tenantRepository.existsByPhoneAndIdNot(anyString(), any(UUID.class))).thenReturn(false);
+
+        //Act
+        TenantResponse updatedTenant = tenantService.update(updateRequest, existingTenantId);
+
+        //Assert
+        assertEquals("newIndustry", updatedTenant.industry());
     }
 }

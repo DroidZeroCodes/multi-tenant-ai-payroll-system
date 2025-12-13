@@ -2,6 +2,7 @@ package org.droid.zero.multitenantaipayrollsystem.system;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.droid.zero.multitenantaipayrollsystem.security.auth.user.credentials.UserCredentials;
 import org.droid.zero.multitenantaipayrollsystem.tenant.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.tenant.TenantRepository;
 import org.droid.zero.multitenantaipayrollsystem.user.User;
@@ -10,6 +11,7 @@ import org.droid.zero.multitenantaipayrollsystem.user.UserRole;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -22,6 +24,7 @@ public class DBDataInitializer {
 
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @EventListener(ApplicationReadyEvent.class)
     public void devStartup() {
@@ -42,10 +45,18 @@ public class DBDataInitializer {
         user.setFirstName("John");
         user.setLastName("Doe");
         user.setEmail("jDoe@email.com");
-        user.setPassword("password");
-        user.setRole(Set.of(UserRole.SUPER_ADMIN, UserRole.EMPLOYEE));
         user.setTenant(tenant);
+
+        UserCredentials credentials = new UserCredentials();
+        credentials.setEmail("jDoe@email.com");
+        credentials.setPassword(passwordEncoder.encode("password"));
+        credentials.setRole(Set.of(UserRole.SUPER_ADMIN, UserRole.EMPLOYEE));
+        credentials.setTenant(tenant);
+
+        user.setUserCredentials(credentials);
+
         userRepository.save(user);
+
         log.info("✅ Successfully Created User Data");
 
         log.info("✅ Database initialization completed");
