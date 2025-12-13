@@ -9,6 +9,7 @@ import org.droid.zero.multitenantaipayrollsystem.security.auth.user.credentials.
 import org.droid.zero.multitenantaipayrollsystem.security.auth.user.credentials.UserCredentialsRepository;
 import org.droid.zero.multitenantaipayrollsystem.security.jwt.TokenService;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,17 +32,17 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserCredentials findByEmail(String email) {
         return credentialsRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(()-> new ObjectNotFoundException(USER, "email"));
+                .orElseThrow(()-> new ObjectNotFoundException(USER, email, "email"));
     }
 
     @Override
     public void changeEmail(ChangeEmailRequest request, UUID userId) {
         //Validate that the user exists
         UserCredentials credentials = credentialsRepository.findByUserId(userId)
-                .orElseThrow(() -> new ObjectNotFoundException(USER, "userId"));
+                .orElseThrow(() -> new ObjectNotFoundException(USER, userId));
 
         //Verify that the email is new
-        if (!request.email().equals(credentials.getEmail())) throw new IllegalArgumentException("new email must not be the same as old email");
+        if (request.email().equals(credentials.getEmail())) throw new IllegalArgumentException("new email must not be the same as old email");
 
         //Update the email
         credentials.setEmail(request.email());
@@ -77,12 +78,23 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void invalidateToken(HttpServletRequest request, Authentication authentication) {
+        //Verify that the user has a valid session
+        if (authentication == null) throw new InsufficientAuthenticationException("User is not authenticated");
+
+        //Extract the token from the request
         String token = extractToken(request);
+
+        //If there is no token, then throw an exception
+        if (token == null || token.isBlank()) throw new BadCredentialsException("Invalid token.");
+
+        //Get the user principal
         UserCredentials user = (UserCredentials) authentication.getPrincipal();
 
-        if (token == null) throw new InsufficientAuthenticationException("Invalid token.");
+        //Validate the token and blacklist it
+        tokenService.blacklistToken(token, user);
 
-        tokenService.isTokenValid(token, user);
+        //Invalidate the session
+        authentication.setAuthenticated(false);
     }
 
     private String extractToken(HttpServletRequest request) {

@@ -66,9 +66,11 @@ public class TokenService {
         );
     }
 
-    public void blacklistToken(String token) {
-        long ttl = extractClaim(token, Claims::getExpiration).getTime() - System.currentTimeMillis();
-        redisCacheClient.blacklistToken(token, ttl);
+    public void blacklistToken(String token, UserDetails userDetails) {
+        if (isTokenValid(token, userDetails)){
+            long ttl = extractClaim(token, Claims::getExpiration).getTime() - System.currentTimeMillis();
+            redisCacheClient.blacklistToken(token, ttl);
+        }
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
