@@ -2,6 +2,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+    show-sql: true
 
   ai:
     google:
@@ -11,3 +12,7 @@ spring:
 auth:
   jwt:
     secret: 56868fddf022cfa637637cf5613d97b5
+    expiration:
+      milliseconds: 900000 # 15 mins
+  verification:
+    expirationInMinutes: 15
