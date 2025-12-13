@@ -1,9 +1,13 @@
 package org.droid.zero.multitenantaipayrollsystem.user;
 
+import org.droid.zero.multitenantaipayrollsystem.security.auth.dto.CredentialsRegistrationRequest;
+import org.droid.zero.multitenantaipayrollsystem.security.auth.mapper.UserCredentialsMapper;
+import org.droid.zero.multitenantaipayrollsystem.security.auth.user.credentials.UserCredentials;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.DuplicateResourceException;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
-import org.droid.zero.multitenantaipayrollsystem.tenant.TenantServiceImpl;
-import org.droid.zero.multitenantaipayrollsystem.user.dto.UserRequest;
+import org.droid.zero.multitenantaipayrollsystem.tenant.Tenant;
+import org.droid.zero.multitenantaipayrollsystem.tenant.TenantRepository;
+import org.droid.zero.multitenantaipayrollsystem.user.dto.UserRegistrationRequest;
 import org.droid.zero.multitenantaipayrollsystem.user.dto.UserResponse;
 import org.droid.zero.multitenantaipayrollsystem.user.mapper.UserMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 import java.util.Set;
@@ -22,7 +28,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowableOfType;
 import static org.droid.zero.multitenantaipayrollsystem.system.ResourceType.USER;
 import static org.droid.zero.multitenantaipayrollsystem.user.UserRole.EMPLOYEE;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -34,34 +41,47 @@ class UserServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private TenantServiceImpl tenantService;
+    private TenantRepository tenantRepository;
 
+    private final PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
     private final UserMapper userMapper = Mappers.getMapper(UserMapper.class);
+    private final UserCredentialsMapper credentialsMapper = Mappers.getMapper(UserCredentialsMapper.class);
 
     private UserServiceImpl userService;
 
+    private Tenant tenant;
     private User user;
-    private UserRequest userRequest;
+    private UserRegistrationRequest userRegistrationRequest;
     private final UUID userId = UUID.randomUUID();
     private final UUID tenantId = UUID.randomUUID();
 
     @BeforeEach
     void setUp() {
-        userService = new UserServiceImpl(userRepository, tenantService, userMapper);
+        userService = new UserServiceImpl(userRepository, tenantRepository, userMapper, credentialsMapper, passwordEncoder);
+
+        tenant = new Tenant();
+        tenant.setId(tenantId);
 
         user = new User();
         user.setId(userId);
         user.setEmail("test@example.com");
-        user.setPassword("hashedPassword");
         user.setFirstName("Test");
         user.setLastName("User");
+        user.setTenant(tenant);
 
-        userRequest = new UserRequest(
+        UserCredentials credentials = new UserCredentials();
+        credentials.setEmail("test@example.com");
+        credentials.setPassword("hashedPassword");
+
+        userRegistrationRequest = new UserRegistrationRequest(
                 "Test",
                 "User",
-                "test@example.com",
-                "password",
-                Set.of(EMPLOYEE),
+                new CredentialsRegistrationRequest(
+                        "test@example.com",
+                        "password",
+                        "password",
+                        Set.of(EMPLOYEE)
+                ),
                 tenantId
         );
     }
@@ -78,7 +98,6 @@ class UserServiceTest {
         assertThat(foundUser).isNotNull();
         assertThat(foundUser.id()).isEqualTo(userId);
         assertThat(foundUser.email()).isEqualTo("test@example.com");
-        assertTrue(foundUser.active());
         verify(userRepository, times(1)).findById(userId);
     }
 
@@ -100,9 +119,9 @@ class UserServiceTest {
         // Arrange
         when(userRepository.existsByEmailIgnoreCaseAndTenantId(anyString(), any(UUID.class))).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(user);
-
+        when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
         // Act
-        UserResponse savedUser = userService.save(userRequest);
+        UserResponse savedUser = userService.save(userRegistrationRequest);
 
         // Assert
         assertNotNull(savedUser);
@@ -110,8 +129,6 @@ class UserServiceTest {
         assertEquals("Test", savedUser.firstName());
         assertEquals("User", savedUser.lastName());
         assertEquals("test@example.com", savedUser.email());
-        assertEquals(Set.of(EMPLOYEE), savedUser.role());
-        assertTrue(savedUser.active());
 
         verify(userRepository, times(1)).existsByEmailIgnoreCaseAndTenantId(anyString(), any(UUID.class));
         verify(userRepository, times(1)).save(any(User.class));
@@ -121,11 +138,12 @@ class UserServiceTest {
     void save_shouldThrowException_whenEmailAlreadyExists() {
         // Arrange
         when(userRepository.existsByEmailIgnoreCaseAndTenantId(anyString(), any(UUID.class))).thenReturn(true);
+        when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
 
         // Act
         DuplicateResourceException thrown = catchThrowableOfType(
                 DuplicateResourceException.class,
-                ()-> userService.save(userRequest)
+                ()-> userService.save(userRegistrationRequest)
         );
 
         // Assert
