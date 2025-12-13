@@ -177,6 +177,21 @@ public class ExceptionHandlerAdvice {
         );
     }
 
+    @ExceptionHandler(TooManyRequestsException.class)
+    @ResponseStatus(TOO_MANY_REQUESTS)
+    public ResponseFactory<Object> handleTooManyRequestsException(TooManyRequestsException ex) {
+        return ResponseFactory.error(
+                ex.getMessage(),
+                Collections.singletonList(new ErrorObject(
+                        TOO_MANY_REQUESTS,
+                        "rate_limit_exceeded",
+                        "Too Many Requests",
+                        ex.getMessage(),
+                        new Source("rate_limit")
+                ))
+        );
+    }
+
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(METHOD_NOT_ALLOWED)
     public ResponseFactory<Object> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
