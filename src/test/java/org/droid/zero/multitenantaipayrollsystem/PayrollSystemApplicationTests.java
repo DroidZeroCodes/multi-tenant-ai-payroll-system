@@ -1,5 +1,6 @@
 package org.droid.zero.multitenantaipayrollsystem;
 
+import org.droid.zero.multitenantaipayrollsystem.test.config.TestcontainersConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
