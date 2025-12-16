@@ -1,5 +1,6 @@
 package org.droid.zero.multitenantaipayrollsystem;
 
+import org.droid.zero.multitenantaipayrollsystem.test.config.TestcontainersConfiguration;
 import org.springframework.boot.SpringApplication;
 
 public class TestAiPoweredPayrollSystemApplication {

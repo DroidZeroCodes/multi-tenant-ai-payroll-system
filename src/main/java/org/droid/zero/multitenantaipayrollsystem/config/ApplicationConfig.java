@@ -1,8 +1,8 @@
 package org.droid.zero.multitenantaipayrollsystem.config;
 
 import lombok.RequiredArgsConstructor;
-import org.droid.zero.multitenantaipayrollsystem.security.auth.user.credentials.UserCredentials;
-import org.droid.zero.multitenantaipayrollsystem.security.auth.user.credentials.UserCredentialsRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentials;
+import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentialsRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

@@ -5,7 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.client.redis.RedisCacheClient;
-import org.droid.zero.multitenantaipayrollsystem.security.auth.user.credentials.UserCredentials;
+import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentials;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -49,6 +49,7 @@ public class TokenService {
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(JWT_EXPIRATION_MILLIS, ChronoUnit.MILLIS)))
                 .claim("userId", ((UserCredentials)(authentication.getPrincipal())).getUser().getId())
+                .claim("tenantId", ((UserCredentials)(authentication.getPrincipal())).getTenant().getId())
                 .claim("roles", roles)
                 .signWith(getSigningKey())
                 .compact();

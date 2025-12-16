@@ -2,12 +2,12 @@ package org.droid.zero.multitenantaipayrollsystem.system;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.droid.zero.multitenantaipayrollsystem.security.auth.user.credentials.UserCredentials;
-import org.droid.zero.multitenantaipayrollsystem.tenant.Tenant;
-import org.droid.zero.multitenantaipayrollsystem.tenant.TenantRepository;
-import org.droid.zero.multitenantaipayrollsystem.user.User;
-import org.droid.zero.multitenantaipayrollsystem.user.UserRepository;
-import org.droid.zero.multitenantaipayrollsystem.user.UserRole;
+import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentials;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.User;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.UserRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.UserRole;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
@@ -41,21 +41,51 @@ public class DBDataInitializer {
         log.info("✅ Successfully Created Tenant Data");
 
         log.info("➡️ Seeding User Data...");
-        User user = new User();
-        user.setFirstName("John");
-        user.setLastName("Doe");
-        user.setEmail("jDoe@email.com");
-        user.setTenant(tenant);
+        User superAdminUser = new User();
+        superAdminUser.setFirstName("John");
+        superAdminUser.setLastName("Doe");
+        superAdminUser.setEmail("jDoe@email.com");
+        superAdminUser.setTenant(tenant);
 
-        UserCredentials credentials = new UserCredentials();
-        credentials.setEmail("jDoe@email.com");
-        credentials.setPassword(passwordEncoder.encode("password"));
-        credentials.setRole(Set.of(UserRole.SUPER_ADMIN, UserRole.EMPLOYEE));
-        credentials.setTenant(tenant);
+        UserCredentials superAdminCredentials = new UserCredentials();
+        superAdminCredentials.setEmail("jDoe@email.com");
+        superAdminCredentials.setPassword(passwordEncoder.encode("password"));
+        superAdminCredentials.setRole(Set.of(UserRole.SUPER_ADMIN, UserRole.EMPLOYEE));
+        superAdminCredentials.setTenant(tenant);
 
-        user.setUserCredentials(credentials);
+        superAdminUser.setUserCredentials(superAdminCredentials);
 
-        userRepository.save(user);
+        User tenantAdminUser = new User();
+        tenantAdminUser.setFirstName("Sence");
+        tenantAdminUser.setLastName("Montana");
+        tenantAdminUser.setEmail("sMontana@email.com");
+        tenantAdminUser.setTenant(tenant);
+
+        UserCredentials tenantAdminCredentials = new UserCredentials();
+        tenantAdminCredentials.setEmail("sMontana@email.com");
+        tenantAdminCredentials.setPassword(passwordEncoder.encode("password"));
+        tenantAdminCredentials.setRole(Set.of(UserRole.TENANT_ADMIN));
+        tenantAdminCredentials.setTenant(tenant);
+
+        tenantAdminUser.setUserCredentials(tenantAdminCredentials);
+
+        User employeeUser = new User();
+        employeeUser.setFirstName("Amar");
+        employeeUser.setLastName("Tariq");
+        employeeUser.setEmail("aTariq@email.com");
+        employeeUser.setTenant(tenant);
+
+        UserCredentials employeeCredentials = new UserCredentials();
+        employeeCredentials.setEmail("aTariq@email.com");
+        employeeCredentials.setPassword(passwordEncoder.encode("password"));
+        employeeCredentials.setRole(Set.of(UserRole.TENANT_ADMIN));
+        employeeCredentials.setTenant(tenant);
+
+        employeeUser.setUserCredentials(employeeCredentials);
+
+        userRepository.save(superAdminUser);
+        userRepository.save(tenantAdminUser);
+        userRepository.save(employeeUser);
 
         log.info("✅ Successfully Created User Data");
 
