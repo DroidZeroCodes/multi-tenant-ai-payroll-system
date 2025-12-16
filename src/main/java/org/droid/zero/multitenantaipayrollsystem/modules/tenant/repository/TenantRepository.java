@@ -1,5 +1,6 @@
-package org.droid.zero.multitenantaipayrollsystem.modules.tenant;
+package org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository;
 
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;

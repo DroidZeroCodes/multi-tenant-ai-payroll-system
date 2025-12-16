@@ -3,8 +3,8 @@ package org.droid.zero.multitenantaipayrollsystem.modules.user;
 import org.apache.http.HttpHeaders;
 import org.droid.zero.multitenantaipayrollsystem.test.config.BaseIntegrationTest;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.dto.CredentialsRegistrationRequest;
-import org.droid.zero.multitenantaipayrollsystem.modules.tenant.Tenant;
-import org.droid.zero.multitenantaipayrollsystem.modules.tenant.TenantRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.dto.UserRegistrationRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -88,6 +88,24 @@ class UserIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("Check findUserById (GET) - Forbidden for unauthorized Employee")
+    void findUserById_Forbidden_Employee() throws Exception {
+        // Arrange
+        User targetUser = new User();
+        targetUser.setEmail("target@example.com");
+        targetUser.setFirstName("Target");
+        targetUser.setLastName("User");
+        targetUser.setTenant(testTenant);
+        targetUser = userRepository.save(targetUser);
+
+        // Act & Assert
+        this.mockMvc.perform(get(this.getBaseUrl() + "/users/" + targetUser.getId())
+                        .header(HttpHeaders.AUTHORIZATION, EMPLOYEE_TOKEN)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @DisplayName("Check addUser with valid input (POST)")
     void testAddUser_Success() throws Exception {
         // Arrange
@@ -156,6 +174,31 @@ class UserIntegrationTest extends BaseIntegrationTest {
                                 "role is required",
                                 "tenantId is required"
                         )));
+    }
+
+    @Test
+    @DisplayName("Check addUser (POST) - Forbidden for Employee")
+    void testAddUser_Forbidden_Employee() throws Exception {
+        // Arrange
+        UserRegistrationRequest request = new UserRegistrationRequest(
+                "Hacker",
+                "Employee",
+                new CredentialsRegistrationRequest(
+                        "hacker@example.com",
+                        "Pass123!",
+                        "Pass123!",
+                        Set.of(UserRole.EMPLOYEE)
+                ),
+                testTenant.getId()
+        );
+
+        // Act & Assert
+        this.mockMvc.perform(post(this.getBaseUrl() + "/users")
+                        .header(HttpHeaders.AUTHORIZATION, EMPLOYEE_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
     }
 
     @Test

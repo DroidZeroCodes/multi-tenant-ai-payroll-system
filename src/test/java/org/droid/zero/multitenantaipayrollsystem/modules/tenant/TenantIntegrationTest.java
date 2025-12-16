@@ -1,6 +1,8 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.tenant;
 
 import org.apache.http.HttpHeaders;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
 import org.droid.zero.multitenantaipayrollsystem.test.config.BaseIntegrationTest;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.User;
@@ -30,27 +32,37 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     private UserRepository userRepository;
 
     @Test
-    @DisplayName("Check findTenantById (GET)")
-    void findTenantById() throws Exception {
-        //Arrange
-        Tenant tenant = new Tenant();
-        tenant.setName("Test Tenant");
-        tenant.setEmail("testEmail@email.com");
-        tenant.setPhone("1234567890");
-        tenant.setIndustry("technology");
-        tenant = tenantRepository.save(tenant);
-
+    @DisplayName("Check findTenantById (GET) - Success for Super Admin")
+    void findTenantById_Success_SuperAdmin() throws Exception {
         //Act & Assert
-        this.mockMvc.perform(get(this.getBaseUrl()+ "/tenants/" + tenant.getId())
-                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
+        this.mockMvc.perform(get(this.getBaseUrl()+ "/tenants/" + TEST_TENANT.getId())
+                        .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Find One Success"))
-                .andExpect(jsonPath("$.data.name").value("Test Tenant"))
-                .andExpect(jsonPath("$.data.email").value("testEmail@email.com"))
-                .andExpect(jsonPath("$.data.phone").value("1234567890"))
-                .andExpect(jsonPath("$.data.industry").value("technology"))
+                .andExpect(jsonPath("$.data.name").value("Default Tenant"))
+                .andExpect(jsonPath("$.data.email").value("tenant.default@email.com"))
+                .andExpect(jsonPath("$.data.phone").value("9999999"))
+                .andExpect(jsonPath("$.data.industry").value("Default Industry"))
+                .andExpect(jsonPath("$.data.active").value(true))
+                .andExpect(jsonPath("$.errors").isEmpty());
+    }
+
+    @Test
+    @DisplayName("Check findTenantById (GET) - Success for Tenant Admin on assigned tenant")
+    void findTenantById_Success_TenantAdmin() throws Exception {
+        //Act & Assert
+        this.mockMvc.perform(get(this.getBaseUrl()+ "/tenants/" + TEST_TENANT.getId())
+                        .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Find One Success"))
+                .andExpect(jsonPath("$.data.name").value("Default Tenant"))
+                .andExpect(jsonPath("$.data.email").value("tenant.default@email.com"))
+                .andExpect(jsonPath("$.data.phone").value("9999999"))
+                .andExpect(jsonPath("$.data.industry").value("Default Industry"))
                 .andExpect(jsonPath("$.data.active").value(true))
                 .andExpect(jsonPath("$.errors").isEmpty());
     }
@@ -78,8 +90,35 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("Check findTenantById (GET) - Forbidden for Tenant Admin accessing other tenant")
+    void findTenantById_Forbidden_TenantAdmin_CrossTenant() throws Exception {
+        Tenant tenant = new Tenant();
+        tenant.setName("My Tenant");
+        tenant.setEmail("me@email.com");
+        tenant.setPhone("1112223333");
+        tenant.setIndustry("tech");
+        tenant = tenantRepository.save(tenant);
+
+        //This tenant admin is not assigned to the new tenant
+        this.mockMvc.perform(get(this.getBaseUrl()+ "/tenants/" + tenant.getId())
+                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Check findTenantById (GET) - Forbidden for Employee")
+    void findTenantById_Forbidden_Employee() throws Exception {
+        //Act & Assert
+        this.mockMvc.perform(get(this.getBaseUrl()+ "/tenants/" + TEST_TENANT.getId())
+                        .header(HttpHeaders.AUTHORIZATION, EMPLOYEE_TOKEN)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @DisplayName("Check addTenant with valid input (POST)")
-    void testAddTenant_Success() throws Exception {
+    void addTenant_Success() throws Exception {
         //Arrange
         TenantRequest request = new TenantRequest(
                 "Test Company",
@@ -127,7 +166,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     // Add this new test to verify default admin user creation
     @Test
     @DisplayName("Check that creating tenant initializes default admin user")
-    void testCreateTenant_InitializesDefaultAdmin() throws Exception {
+    void createTenant_InitializesDefaultAdmin() throws Exception {
         // Arrange
         TenantRequest request = new TenantRequest(
                 "New Company Inc",
@@ -190,7 +229,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("Check addTenant with invalid input (POST)")
-    void testAddTenant_InvalidInput() throws Exception {
+    void addTenant_InvalidInput() throws Exception {
         //Arrange
         TenantRequest request = new TenantRequest(
                 "",
@@ -219,7 +258,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("Check addTenant with unique constrain violation (POST)")
-    void testAddTenant_UniqueConstraintViolation() throws Exception {
+    void addTenant_UniqueConstraintViolation() throws Exception {
         //Arrange
         Tenant existingTenant = new Tenant();
         existingTenant.setName("existing");
@@ -254,10 +293,32 @@ class TenantIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.errors[2].detail").value("The provided 'phone' is already taken."));
     }
 
+    @Test
+    @DisplayName("Check addTenant (POST) - Forbidden for non Super Admin")
+    void addTenant_Forbidden_NonSuperAdmin() throws Exception {
+        TenantRequest request = new TenantRequest(
+                "Hacker Corp", "hacker@email.com", "0000000000", "crime"
+        );
+
+        this.mockMvc.perform(post(this.getBaseUrl()+ "/tenants")
+                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+
+        this.mockMvc.perform(post(this.getBaseUrl()+ "/tenants")
+                        .header(HttpHeaders.AUTHORIZATION, EMPLOYEE_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
 
     @Test
-    @DisplayName("Check updateTenant with valid input (PUT)")
-    void testUpdateTenant_Success() throws Exception {
+    @DisplayName("Check updateTenant with valid input (PUT) - Success for SuperAdmin")
+    void updateTenant_Success_SuperAdmin() throws Exception {
         //Arrange
         Tenant existingTenant = new Tenant();
         existingTenant.setName("existingTenantName");
@@ -275,7 +336,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
 
         //Act & Assert
         this.mockMvc.perform(put(this.getBaseUrl()+ "/tenants/" + existingTenant.getId())
-                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
+                        .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .accept(MediaType.APPLICATION_JSON))
@@ -297,8 +358,42 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("Check updateTenant with valid input (PUT) - Success for Tenant Admin on assigned tenant")
+    void updateTenant_Success_TenantAdmin() throws Exception {
+        //Arrange
+        TenantRequest request = new TenantRequest(
+                "newName",
+                "new@email.com",
+                "9876543210",
+                "technology"
+        );
+
+        //Act & Assert
+        this.mockMvc.perform(put(this.getBaseUrl()+ "/tenants/" + TEST_TENANT.getId())
+                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Update Success"))
+                .andExpect(jsonPath("$.data.name").value("newName"))
+                .andExpect(jsonPath("$.data.email").value("new@email.com"))
+                .andExpect(jsonPath("$.data.phone").value("9876543210"))
+                .andExpect(jsonPath("$.data.industry").value("technology"))
+                .andExpect(jsonPath("$.data.active").value(true))
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        // Verify tenant was updated in database
+        Tenant updatedTenant = tenantRepository.findById(TEST_TENANT.getId()).orElseThrow();
+        assertThat(updatedTenant.getName()).isEqualTo("newName");
+        assertThat(updatedTenant.getEmail()).isEqualTo("new@email.com");
+        assertThat(updatedTenant.getPhone()).isEqualTo("9876543210");
+    }
+
+    @Test
     @DisplayName("Check updateTenant with not found (PUT)")
-    void testUpdateTenant_NotFound() throws Exception {
+    void updateTenant_NotFound() throws Exception {
         //Arrange
         UUID nonExistentId = UUID.randomUUID();
         TenantRequest request = new TenantRequest(
@@ -327,7 +422,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("Check updateTenant with unique constrain violation (PUT)")
-    void testUpdateTenant_UniqueConstraintViolation() throws Exception {
+    void updateTenant_UniqueConstraintViolation() throws Exception {
         //Arrange
         Tenant existingTenant = new Tenant();
         existingTenant.setName("existingTenantName");
@@ -352,7 +447,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
 
         //Act & Assert
         this.mockMvc.perform(put(this.getBaseUrl()+ "/tenants/" + existingTenant.getId())
-                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
+                        .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .accept(MediaType.APPLICATION_JSON))
@@ -369,10 +464,56 @@ class TenantIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.errors[2].detail").value("The provided 'phone' is already taken."));
     }
 
+    @Test
+    @DisplayName("Check updateTenant (PUT) - Forbidden for Tenant Admin on Different Tenant")
+    void updateTenant_Forbidden_TenantAdmin_CrossTenant() throws Exception {
+        Tenant tenant = new Tenant();
+        tenant.setName("Other Tenant");
+        tenant.setEmail("other@email.com");
+        tenant.setPhone("9998887777");
+        tenant.setIndustry("other");
+        tenant = tenantRepository.save(tenant);
+
+        TenantRequest request = new TenantRequest(
+                "Malicious Update", "other@email.com", "9998887777", "other"
+        );
+
+        // Act & Assert - Tenant is not assigned to the new tenant
+        this.mockMvc.perform(put(this.getBaseUrl()+ "/tenants/" + tenant.getId())
+                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Check updateTenant (PUT) - Forbidden for Employee")
+    void updateTenant_Forbidden_Employee() throws Exception {
+        Tenant tenant = new Tenant();
+        tenant.setName("Other Tenant");
+        tenant.setEmail("other@email.com");
+        tenant.setPhone("9998887777");
+        tenant.setIndustry("other");
+        tenant = tenantRepository.save(tenant);
+
+        TenantRequest request = new TenantRequest(
+                "Malicious Update", "other@email.com", "9998887777", "other"
+        );
+
+        // Act & Assert - Tenant is not assigned to the new tenant
+        this.mockMvc.perform(put(this.getBaseUrl()+ "/tenants/" + tenant.getId())
+                        .header(HttpHeaders.AUTHORIZATION, EMPLOYEE_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
 
     @Test
     @DisplayName("Check updateTenantStatus with valid input (PATCH)")
-    void testUpdateTenantStatus_Success() throws Exception {
+    void updateTenantStatus_Success() throws Exception {
         //Arrange
         Tenant existingTenant = new Tenant();
         existingTenant.setName("testTenantName");
@@ -383,7 +524,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
 
         //Act & Assert - First toggle should deactivate
         this.mockMvc.perform(patch(this.getBaseUrl()+ "/tenants/" + existingTenant.getId() + "/status")
-                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
+                        .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -399,7 +540,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("Check updateTenantStatus toggle multiple times (PATCH)")
-    void testUpdateTenantStatus_ToggleMultipleTimes() throws Exception {
+    void updateTenantStatus_ToggleMultipleTimes() throws Exception {
         //Arrange
         Tenant existingTenant = new Tenant();
         existingTenant.setName("testTenantName");
@@ -410,14 +551,14 @@ class TenantIntegrationTest extends BaseIntegrationTest {
 
         // First toggle - deactivate
         this.mockMvc.perform(patch(this.getBaseUrl()+ "/tenants/" + existingTenant.getId() + "/status")
-                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
+                        .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.active").value(false));
 
         // Second toggle - reactivate
         this.mockMvc.perform(patch(this.getBaseUrl()+ "/tenants/" + existingTenant.getId() + "/status")
-                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
+                        .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.active").value(true));
@@ -425,13 +566,13 @@ class TenantIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("Check updateTenantStatus with not found (PATCH)")
-    void testUpdateTenantStatus_NotFound() throws Exception {
+    void updateTenantStatus_NotFound() throws Exception {
         //Arrange
         UUID nonExistentId = UUID.randomUUID();
 
         //Act & Assert
         this.mockMvc.perform(patch(this.getBaseUrl()+ "/tenants/" + nonExistentId + "/status")
-                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
+                        .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
@@ -442,5 +583,20 @@ class TenantIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.errors[0].code").value("resource_not_found"))
                 .andExpect(jsonPath("$.errors[0].title").value("Resource Not Found"))
                 .andExpect(jsonPath("$.errors[0].detail").value("Could not find TENANT with ID '" + nonExistentId + "'."));
+    }
+
+    @Test
+    @DisplayName("Check updateTenant (PUT) - Forbidden for non Super Admin")
+    void updateTenantStatus_Forbidden_NonSuperAdmin() throws Exception {
+        // Act & Assert
+        this.mockMvc.perform(patch(this.getBaseUrl()+ "/tenants/" + TEST_TENANT.getId() + "/status")
+                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+
+        this.mockMvc.perform(patch(this.getBaseUrl()+ "/tenants/" + TEST_TENANT.getId() + "/status")
+                        .header(HttpHeaders.AUTHORIZATION, EMPLOYEE_TOKEN)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
     }
 }

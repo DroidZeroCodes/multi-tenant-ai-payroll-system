@@ -6,6 +6,7 @@ import org.droid.zero.multitenantaipayrollsystem.system.api.ErrorObject.Source;
 import org.droid.zero.multitenantaipayrollsystem.system.api.ResponseFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -193,16 +194,19 @@ public class ExceptionHandlerAdvice {
         );
     }
 
-    @ExceptionHandler(AuthorizationDeniedException.class)
+    @ExceptionHandler({
+            AuthorizationDeniedException.class,
+            AccessDeniedException.class
+    })
     @ResponseStatus(FORBIDDEN)
-    public ResponseFactory<Object> handleAuthorizationDeniedException(AuthorizationDeniedException e) {
+    public ResponseFactory<Object> handleAccessDeniedException(AccessDeniedException e) {
         return ResponseFactory.error(
                 "User have insufficient privileges",
                 Collections.singletonList(new ErrorObject(
                         FORBIDDEN,
                         "unauthorized",
                         "Access Denied",
-                        "User have insufficient privileges",
+                        e.getMessage(),
                         new Source("auth")
                 ))
         );

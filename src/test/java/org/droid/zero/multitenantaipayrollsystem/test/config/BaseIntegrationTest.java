@@ -4,11 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.transaction.Transactional;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentials;
-import org.droid.zero.multitenantaipayrollsystem.modules.tenant.Tenant;
-import org.droid.zero.multitenantaipayrollsystem.modules.tenant.TenantRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.User;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.UserRepository;
-import org.junit.jupiter.api.BeforeAll;
+import org.droid.zero.multitenantaipayrollsystem.security.filters.RateLimitCheckFilter;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +43,7 @@ public class BaseIntegrationTest {
     public static String SUPER_ADMIN_TOKEN;
     public static String TENANT_ADMIN_TOKEN;
     public static String EMPLOYEE_TOKEN;
+    public static Tenant TEST_TENANT;
 
     @Autowired
     protected MockMvc mockMvc;
@@ -52,18 +54,22 @@ public class BaseIntegrationTest {
     @Value("${api.endpoint.base-url}")
     private String BASE_URL;
 
-    @BeforeAll
-    static void setupTokens(
+    @BeforeEach
+    protected void setupTokens(
             @Autowired MockMvc staticMockMvc,
             @Autowired TenantRepository tenantRepository,
             @Autowired UserRepository userRepository,
             @Autowired PasswordEncoder passwordEncoder,
             @Value("${api.endpoint.base-url}") String baseUrl
     ) throws Exception {
+        RateLimitCheckFilter.disable();
+
         Tenant tenant = createTenant(tenantRepository);
         User superAdmin = createSuperAdminUser(userRepository, passwordEncoder, tenant);
         User tenantAdmin = createTenantAdminUser(userRepository, passwordEncoder, tenant);
         User employee = createEmployeeUser(userRepository, passwordEncoder, tenant);
+
+        TEST_TENANT = tenant;
 
         MvcResult superAdminResult = staticMockMvc.perform(post(baseUrl + "/auth/login")
                         .with(httpBasic(superAdmin.getEmail(), "password"))
@@ -88,6 +94,8 @@ public class BaseIntegrationTest {
                 .andReturn();
 
         EMPLOYEE_TOKEN = "Bearer " + JsonPath.read(employeeResult.getResponse().getContentAsString(), "$.data.token");
+
+        RateLimitCheckFilter.enable();
     }
 
     private static Tenant createTenant(TenantRepository tenantRepository) {

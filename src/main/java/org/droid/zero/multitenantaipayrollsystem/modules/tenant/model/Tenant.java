@@ -1,4 +1,4 @@
-package org.droid.zero.multitenantaipayrollsystem.modules.tenant;
+package org.droid.zero.multitenantaipayrollsystem.modules.tenant.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;

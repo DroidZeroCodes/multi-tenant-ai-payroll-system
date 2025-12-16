@@ -1,18 +1,16 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.user;
 
-import org.droid.zero.multitenantaipayrollsystem.modules.user.User;
-import org.droid.zero.multitenantaipayrollsystem.modules.user.UserRepository;
-import org.droid.zero.multitenantaipayrollsystem.modules.user.UserServiceImpl;
+import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentials;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.dto.CredentialsRegistrationRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.mapper.UserCredentialsMapper;
-import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentials;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.DuplicateResourceException;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
-import org.droid.zero.multitenantaipayrollsystem.modules.tenant.Tenant;
-import org.droid.zero.multitenantaipayrollsystem.modules.tenant.TenantRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.dto.UserRegistrationRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.dto.UserResponse;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.mapper.UserMapper;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.DuplicateResourceException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.test.config.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,8 +27,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowableOfType;
-import static org.droid.zero.multitenantaipayrollsystem.system.ResourceType.USER;
 import static org.droid.zero.multitenantaipayrollsystem.modules.user.UserRole.EMPLOYEE;
+import static org.droid.zero.multitenantaipayrollsystem.system.ResourceType.USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,7 +36,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
+class UserServiceTest extends BaseUnitTest {
 
     @Mock
     private UserRepository userRepository;

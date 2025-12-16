@@ -1,7 +1,8 @@
-package org.droid.zero.multitenantaipayrollsystem.modules.tenant;
+package org.droid.zero.multitenantaipayrollsystem.modules.tenant.service;
 
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantResponse;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 
 import java.util.UUID;
 

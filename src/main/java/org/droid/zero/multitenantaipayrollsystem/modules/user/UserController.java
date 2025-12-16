@@ -2,9 +2,9 @@ package org.droid.zero.multitenantaipayrollsystem.modules.user;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.droid.zero.multitenantaipayrollsystem.system.api.ResponseFactory;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.dto.UserRegistrationRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.dto.UserResponse;
+import org.droid.zero.multitenantaipayrollsystem.system.api.ResponseFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +15,7 @@ import java.util.UUID;
 @RequestMapping("${api.endpoint.base-url}/users")
 @RequiredArgsConstructor
 public class UserController {
+
     private final UserService userService;
 
     @GetMapping("/{userId}")

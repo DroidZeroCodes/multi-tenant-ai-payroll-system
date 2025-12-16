@@ -25,8 +25,18 @@ import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 @RequiredArgsConstructor
 public class RateLimitCheckFilter extends OncePerRequestFilter {
 
+    private static final ThreadLocal<Boolean> DISABLED = ThreadLocal.withInitial(() -> false);
+
     private final RedisCacheClient redis;
     private final ObjectMapper objectMapper;
+
+    public static void disable() {
+        DISABLED.set(true);
+    }
+
+    public static void enable() {
+        DISABLED.set(false);
+    }
 
     @Override
     protected void doFilterInternal(
@@ -34,6 +44,12 @@ public class RateLimitCheckFilter extends OncePerRequestFilter {
             @NotNull HttpServletResponse response,
             @NotNull FilterChain filterChain
     ) throws ServletException, IOException {
+
+        if (DISABLED.get()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // 1. Get the email from the request header
         String email = null;
 

@@ -1,14 +1,12 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.droid.zero.multitenantaipayrollsystem.modules.auth.AuthServiceImpl;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.dto.AuthTokenDto;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.dto.ChangeEmailRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.dto.ChangePasswordRequest;
-import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentials;
-import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentialsRepository;
 import org.droid.zero.multitenantaipayrollsystem.security.jwt.TokenService;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.test.config.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +27,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AuthServiceTest {
+class AuthServiceTest extends BaseUnitTest {
 
     @Mock
     private UserCredentialsRepository credentialsRepository;

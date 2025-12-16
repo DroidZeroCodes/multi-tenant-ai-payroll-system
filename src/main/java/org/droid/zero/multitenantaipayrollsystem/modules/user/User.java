@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentials;
 import org.droid.zero.multitenantaipayrollsystem.system.BaseModel;
-import org.droid.zero.multitenantaipayrollsystem.modules.tenant.Tenant;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity

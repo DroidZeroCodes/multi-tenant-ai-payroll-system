@@ -1,10 +1,11 @@
-package org.droid.zero.multitenantaipayrollsystem.modules.tenant;
+package org.droid.zero.multitenantaipayrollsystem.modules.tenant.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantResponse;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantStatus;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.service.TenantService;
 import org.droid.zero.multitenantaipayrollsystem.system.api.ResponseFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,7 +21,7 @@ public class TenantController {
 
     @GetMapping("/{tenantId}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN')")
     public ResponseFactory<TenantResponse> findTenantById(@PathVariable() UUID tenantId) {
         return ResponseFactory.success(
                 "Find One Success",
@@ -41,7 +42,7 @@ public class TenantController {
 
     @PutMapping("/{tenantId}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasRole('SUPER_ADMIN') or (#tenantId == authentication.principal.getClaim('tenantId'))")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN')")
     public ResponseFactory<TenantResponse> updateTenant(
             @Valid @RequestBody TenantRequest newTenant,
             @PathVariable UUID tenantId
@@ -55,7 +56,7 @@ public class TenantController {
 
     @PatchMapping("/{tenantId}/status")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasRole('SUPER_ADMIN') or (#tenantId == authentication.principal.getClaim('tenantId'))")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseFactory<TenantStatus> updateTenantStatus(@PathVariable UUID tenantId) {
         return ResponseFactory.success(
                 "Update Success",

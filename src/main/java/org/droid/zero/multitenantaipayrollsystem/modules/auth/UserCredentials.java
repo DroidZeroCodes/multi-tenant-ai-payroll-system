@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.droid.zero.multitenantaipayrollsystem.system.BaseModel;
-import org.droid.zero.multitenantaipayrollsystem.modules.tenant.Tenant;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.User;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.UserRole;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;

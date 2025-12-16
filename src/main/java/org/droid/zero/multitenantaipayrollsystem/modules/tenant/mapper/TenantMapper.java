@@ -1,6 +1,6 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.tenant.mapper;
 
-import org.droid.zero.multitenantaipayrollsystem.modules.tenant.Tenant;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantResponse;
 import org.mapstruct.Mapper;

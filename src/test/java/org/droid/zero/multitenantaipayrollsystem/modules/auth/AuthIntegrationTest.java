@@ -4,8 +4,8 @@ import org.apache.http.HttpHeaders;
 import org.droid.zero.multitenantaipayrollsystem.test.config.BaseIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -15,9 +15,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DisplayName("Integration tests for Authentication")
 class AuthIntegrationTest extends BaseIntegrationTest {
-
-    @Autowired
-    private AuthService authService;
 
     @Test
     @DisplayName("Check login endpoint returns token (POST)")
@@ -64,7 +61,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         this.mockMvc.perform(delete(this.getBaseUrl() + "/auth/logout")
                         .header(HttpHeaders.AUTHORIZATION, "InvalidTokenFormat")
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized()); // Or 403 depending on your security config
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -74,7 +71,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         this.mockMvc.perform(delete(this.getBaseUrl() + "/auth/logout")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer ")
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized()); // Or 403 depending on your security config
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -99,6 +96,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("Check logout after successful login flow")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void loginAndLogout_workflow() throws Exception {
         // Login to get a fresh token
         String responseContent = this.mockMvc.perform(post(this.getBaseUrl() + "/auth/login")
@@ -117,7 +115,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
                 .path("token")
                 .asText();
 
-        // Step 2: Use the token to log out
+        //Use the token to log out
         this.mockMvc.perform(delete(this.getBaseUrl() + "/auth/logout")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                         .accept(MediaType.APPLICATION_JSON))
@@ -129,7 +127,6 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Check multiple logout attempts with same token")
     void multipleLogouts_withSameToken_shouldHandleGracefully() throws Exception {
-        // First logout should succeed
         String result = this.mockMvc.perform(post(this.getBaseUrl() + "/auth/login")
                         .with(httpBasic("employee.default@email.com", "password"))
                         .accept(MediaType.APPLICATION_JSON))
@@ -143,6 +140,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
                 .path("token")
                 .asText();
 
+        // First logout should succeed
         this.mockMvc.perform(delete(this.getBaseUrl() + "/auth/logout")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                         .accept(MediaType.APPLICATION_JSON))

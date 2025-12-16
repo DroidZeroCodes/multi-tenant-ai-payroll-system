@@ -10,7 +10,9 @@ import java.util.UUID;
 
 public interface UserService {
     UserResponse findById(UUID userId);
+
     User findByEmail(String email);
+
     UserResponse save(UserRegistrationRequest request);
 
     @EventListener

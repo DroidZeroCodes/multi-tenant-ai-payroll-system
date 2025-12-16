@@ -1,11 +1,15 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.tenant;
 
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.DuplicateResourceException;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantResponse;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.events.TenantCreatedEvent;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.mapper.TenantMapper;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.service.TenantServiceImpl;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.DuplicateResourceException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.test.config.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +32,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class TenantServiceTest {
+class TenantServiceTest extends BaseUnitTest {
     @Mock
     private TenantRepository tenantRepository;
 

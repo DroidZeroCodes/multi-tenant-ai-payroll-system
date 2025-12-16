@@ -1,5 +1,6 @@
-package org.droid.zero.multitenantaipayrollsystem.modules.tenant;
+package org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository;
 
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.UUID;
