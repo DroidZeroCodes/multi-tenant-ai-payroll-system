@@ -1,8 +1,17 @@
 spring:
   jpa:
-    hibernate:
-      ddl-auto: create-drop
     show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migrations
+
+  data:
+    redis:
+      port: 3004
 
   ai:
     google:

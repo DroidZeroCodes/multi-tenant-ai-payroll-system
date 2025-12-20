@@ -2,13 +2,33 @@ services:
   postgres:
     image: 'postgres:latest'
     container_name: 'payroll-system-db'
+    restart: unless-stopped
     environment:
       - 'POSTGRES_USER=$SPRING_DATASOURCE_USERNAME'
       - 'POSTGRES_PASSWORD=$SPRING_DATASOURCE_PASSWORD'
       - 'POSTGRES_DB=$SPRING_DATASOURCE_DB'
     ports:
       - '3003:5432'
+    volumes:
+      - payroll_system_db_data:/var/lib/postgresql/data-flyway
+    networks:
+      - payroll_system_net
+
   redis:
     image: 'redis:latest'
+    container_name: 'payroll-system-redis'
+    restart: unless-stopped
     ports:
-      - '6379'
+      - '3004:6379'
+    volumes:
+      - payroll_system_db_redis:/var/lib/redis/data
+    networks:
+      - payroll_system_net
+
+volumes:
+  payroll_system_db_data:
+  payroll_system_db_redis:
+
+networks:
+  payroll_system_net:
+
