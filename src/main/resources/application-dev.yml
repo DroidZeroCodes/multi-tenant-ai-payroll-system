@@ -40,3 +40,11 @@ auth:
       milliseconds: ${AUTH_JWT_EXPIRATION_MILLISECONDS}
   verification:
     expirationInMinutes: 15
+  disable-login-rate-limit: true
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.droid.zero.multitenantaipayrollsystem: DEBUG
+    org.hibernate.SQL: ERROR
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
