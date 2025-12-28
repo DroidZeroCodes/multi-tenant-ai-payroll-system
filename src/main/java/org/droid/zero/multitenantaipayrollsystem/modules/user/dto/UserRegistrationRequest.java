@@ -24,9 +24,6 @@ public record UserRegistrationRequest(
 
         @NotNull(message = "credentials is required")
         @Valid
-        CredentialsRegistrationRequest credentials,
-
-        @NotNull(message = "tenantId is required")
-        UUID tenantId
+        CredentialsRegistrationRequest credentials
 ) {
 }

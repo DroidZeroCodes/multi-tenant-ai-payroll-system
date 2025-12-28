@@ -21,11 +21,20 @@ public class TenantController {
 
     @GetMapping("/{tenantId}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseFactory<TenantResponse> findTenantById(@PathVariable() UUID tenantId) {
         return ResponseFactory.success(
                 "Find One Success",
-                tenantService.findByIdResponse(tenantId)
+                tenantService.findById(tenantId)
+        );
+    }
+
+    @GetMapping("/current")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseFactory<TenantResponse> findCurrentTenant() {
+        return ResponseFactory.success(
+                "Find One Success",
+                tenantService.findCurrent()
         );
     }
 

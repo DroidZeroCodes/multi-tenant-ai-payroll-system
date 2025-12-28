@@ -1,30 +1,28 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.tenant.service;
 
 import lombok.RequiredArgsConstructor;
-import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentials;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantResponse;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.events.TenantCreatedEvent;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.mapper.TenantMapper;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.constant.UserRole;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
 import org.droid.zero.multitenantaipayrollsystem.system.BaseService;
+import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.system.util.FieldDuplicateValidator;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-import static org.droid.zero.multitenantaipayrollsystem.modules.user.UserRole.SUPER_ADMIN;
-import static org.droid.zero.multitenantaipayrollsystem.modules.user.UserRole.TENANT_ADMIN;
 import static org.droid.zero.multitenantaipayrollsystem.system.ResourceType.TENANT;
 
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class TenantServiceImpl extends BaseService implements TenantService {
 
@@ -32,35 +30,38 @@ public class TenantServiceImpl extends BaseService implements TenantService {
     private final TenantMapper tenantMapper;
     private final ApplicationEventPublisher eventPublisher;
 
+    @Transactional
     @Override
-    public Tenant findById(UUID tenantId) {
-        UserCredentials currentUser = getCurrentUser();
-
+    public TenantResponse findById(UUID tenantId) {
         Tenant requestedTenant = this.tenantRepository.findById(tenantId)
                 .orElseThrow(()-> new ObjectNotFoundException(TENANT, tenantId));
 
-        checkReadPermission(currentUser,  requestedTenant);
-
-        return requestedTenant;
+        return tenantMapper.toResponse(requestedTenant);
     }
 
+    @Transactional
     @Override
-    public TenantResponse findByIdResponse(UUID tenantId) {
-        //Use the findById method and map the result to the response dto then return
-        return tenantMapper.toResponse(findById(tenantId));
+    public TenantResponse findCurrent() {
+        return this.findById(TenantContext.getTenantId());
     }
 
+    @Transactional
     @Override
     public TenantResponse save(TenantRequest request) {
         //Validate if the provided arguments does not violate unique constraints
         new FieldDuplicateValidator()
                 .addField(tenantRepository.existsByNameIgnoreCase(request.name()), "name")
-                .addField(tenantRepository.existsByEmailIgnoreCase(request.email()), "email")
+                .addField(tenantRepository.existsByEmailIgnoreCase(request.email()), "contactEmail")
                 .addField(tenantRepository.existsByPhone(request.phone()), "phone")
                 .validate(TENANT);
 
         //Convert request to an entity to be persisted
-        Tenant tenant = tenantMapper.toEntity(request);
+        Tenant tenant = new Tenant(
+                request.name(),
+                request.email(),
+                request.phone(),
+                request.industry()
+        );
 
         //Create the new record in the database
         Tenant savedTenant = this.tenantRepository.save(tenant);
@@ -77,14 +78,20 @@ public class TenantServiceImpl extends BaseService implements TenantService {
         return tenantMapper.toResponse(savedTenant);
     }
 
+    @Transactional
     @Override
     public TenantResponse update(TenantRequest request, UUID tenantId) {
-        UserCredentials currentUser = getCurrentUser();
+        User currentUser = getCurrentUser();
+
+        UUID activeTenant = TenantContext.getTenantId();
+
+        if (currentUser.getActiveRoles().contains(UserRole.TENANT_ADMIN)){
+            if (!activeTenant.equals(tenantId)) throw new ObjectNotFoundException(TENANT, tenantId);
+        }
 
         //Find the tenant to update, else throw an exception
-        Tenant existingTenant = this.findById(tenantId);
-
-        checkReadPermission(currentUser, existingTenant);
+        Tenant existingTenant = this.tenantRepository.findById(tenantId)
+                .orElseThrow(()-> new ObjectNotFoundException(TENANT, tenantId));
 
         //Validate if the provided arguments does not violate unique constraints
         new FieldDuplicateValidator()
@@ -94,15 +101,13 @@ public class TenantServiceImpl extends BaseService implements TenantService {
                 .validate(TENANT);
 
         //Update the fields
-        existingTenant.setName(request.name());
-        existingTenant.setEmail(request.email());
-        existingTenant.setPhone(request.phone());
-        existingTenant.setIndustry(request.industry());
+        existingTenant.updateTenant(request.name(),request.email(), request.phone(), request.industry());
 
         //Directly returning the mapped model since it automatically persists the changes to the database
         return tenantMapper.toResponse(existingTenant);
     }
 
+    @Transactional
     @Override
     public boolean toggleTenantStatus(UUID tenantId) {
         //Find the tenant to update, else throw an exception
@@ -110,20 +115,5 @@ public class TenantServiceImpl extends BaseService implements TenantService {
                 .orElseThrow(()-> new ObjectNotFoundException(TENANT, tenantId));
 
         return existingTenant.toggleActiveStatus();
-    }
-
-    private void checkReadPermission(UserCredentials currentUser, Tenant targetTenant) {
-        // 1. Super Admin: Allow everything
-        if (currentUser.getRole().contains(SUPER_ADMIN)) return;
-
-        // 2. Tenant Admin: Allow if the same tenant
-        if (currentUser.getRole().contains(TENANT_ADMIN)) {
-            if (targetTenant.getId().equals(currentUser.getTenant().getId())) {
-                return;
-            }
-        }
-
-        // 3. Previous check failed or if Regular User: Do not allow
-        throw new AccessDeniedException("You do not have access to this resource.");
     }
 }
