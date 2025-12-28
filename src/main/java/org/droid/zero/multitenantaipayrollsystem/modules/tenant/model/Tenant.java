@@ -1,20 +1,16 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.tenant.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.droid.zero.multitenantaipayrollsystem.modules.user.User;
 import org.droid.zero.multitenantaipayrollsystem.system.BaseModel;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 @Table(name = "tenants")
 public class Tenant extends BaseModel {
@@ -23,8 +19,8 @@ public class Tenant extends BaseModel {
     private String name;
 
     @Column(nullable = false, unique = true)
-    @NotBlank(message = "email is required")
-    @Email(message = "invalid email format")
+    @NotBlank(message = "contactEmail is required")
+    @Email(message = "invalid contactEmail format")
     private String email;
 
     @Column(nullable = false, unique = true)
@@ -38,8 +34,19 @@ public class Tenant extends BaseModel {
     @Column(name = "is_active")
     private boolean active = true;
 
-    @OneToMany(mappedBy = "tenant", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
-    private Set<User> user = new HashSet<>();
+    public Tenant(String name, String email, String phone, String industry) {
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.industry = industry;
+    }
+
+    public void updateTenant(String name, String email, String phone, String industry){
+        if (name != null && !name.isBlank()) this.name = name;
+        if (email != null && !email.isBlank()) this.email = email;
+        if (phone != null && !phone.isBlank()) this.phone = phone;
+        if (industry != null && !industry.isBlank())  this.industry = industry;
+    }
 
     public boolean toggleActiveStatus() {
         this.active = !this.active;

@@ -32,9 +32,9 @@ public class RedisCacheClient {
         return redis.hasKey("blacklist:" + jwt);
     }
 
-    public boolean isRateLimitExceeded(String email){
+    public boolean isRateLimitExceeded(String email, String tenantId){
         //First, get the number of login attempts in redis
-        String value = this.get("login_attempts:" + email);
+        String value = this.get("login_attempts:" + email + ":" + tenantId);
 
         //If it doesn't exist, initialize the attempts to zero
         int attempts = value == null ? 0 : Integer.parseInt(value);
@@ -44,7 +44,7 @@ public class RedisCacheClient {
         if(attempts > 5) return true;
 
         //If not, record the attempt
-        redis.opsForValue().set("login_attempts:" + email, Integer.toString(attempts), 15, TimeUnit.MINUTES);
+        redis.opsForValue().set("login_attempts:" + email + ":" + tenantId, Integer.toString(attempts), 15, TimeUnit.MINUTES);
         return false;
     }
 }

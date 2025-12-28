@@ -2,13 +2,15 @@ package org.droid.zero.multitenantaipayrollsystem.test.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
-import jakarta.transaction.Transactional;
-import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentials;
+import org.droid.zero.multitenantaipayrollsystem.modules.auth.model.UserCredentials;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.listener.TenantScopedEntityListener;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
-import org.droid.zero.multitenantaipayrollsystem.modules.user.User;
-import org.droid.zero.multitenantaipayrollsystem.modules.user.UserRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.repository.UserRepository;
 import org.droid.zero.multitenantaipayrollsystem.security.filters.RateLimitCheckFilter;
+import org.droid.zero.multitenantaipayrollsystem.system.TenantExecutor;
+import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.TestSecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,8 +28,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Set;
+import java.util.UUID;
 
-import static org.droid.zero.multitenantaipayrollsystem.modules.user.UserRole.*;
+import static org.droid.zero.multitenantaipayrollsystem.modules.user.constant.UserRole.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,17 +38,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @Testcontainers
 @AutoConfigureMockMvc
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @Tag("integration")
 @ActiveProfiles(value = "test")
 @Import(TestcontainersConfiguration.class)
-@Transactional
 public class BaseIntegrationTest {
 
+    public static String BASE_URL;
     public static String SUPER_ADMIN_TOKEN;
     public static String TENANT_ADMIN_TOKEN;
     public static String EMPLOYEE_TOKEN;
-    public static Tenant TEST_TENANT;
+    public static UUID TEST_TENANT_ID;
 
     @Autowired
     protected MockMvc mockMvc;
@@ -51,8 +56,11 @@ public class BaseIntegrationTest {
     @Autowired
     protected ObjectMapper objectMapper;
 
-    @Value("${api.endpoint.base-url}")
-    private String BASE_URL;
+    @Autowired
+    protected TenantExecutor tenantExecutor;
+
+    private PasswordEncoder passwordEncoder;
+    private UserRepository userRepository;
 
     @BeforeEach
     protected void setupTokens(
@@ -61,104 +69,133 @@ public class BaseIntegrationTest {
             @Autowired UserRepository userRepository,
             @Autowired PasswordEncoder passwordEncoder,
             @Value("${api.endpoint.base-url}") String baseUrl
-    ) throws Exception {
+    ) {
         RateLimitCheckFilter.disable();
 
-        Tenant tenant = createTenant(tenantRepository);
-        User superAdmin = createSuperAdminUser(userRepository, passwordEncoder, tenant);
-        User tenantAdmin = createTenantAdminUser(userRepository, passwordEncoder, tenant);
-        User employee = createEmployeeUser(userRepository, passwordEncoder, tenant);
+        this.mockMvc = staticMockMvc;
+        this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
 
-        TEST_TENANT = tenant;
+        TenantScopedEntityListener.runWithoutTenantChecks(() -> {
+            userRepository.deleteAll();
+            tenantRepository.deleteAll();
+            Tenant tenant = new Tenant(
+                    "Default Tenant",
+                    "tenant.default@email.com",
+                    "9999999",
+                    "Default Industry"
+            );
+            tenantRepository.save(tenant);
+            UUID tenantId = tenant.getId();
 
-        MvcResult superAdminResult = staticMockMvc.perform(post(baseUrl + "/auth/login")
-                        .with(httpBasic(superAdmin.getEmail(), "password"))
-                )
-                .andExpect(status().isCreated())
-                .andReturn();
+            TEST_TENANT_ID = tenant.getId();
+            TenantContext.setTenantId(tenantId);
 
-        SUPER_ADMIN_TOKEN = "Bearer " + JsonPath.read(superAdminResult.getResponse().getContentAsString(), "$.data.token");
+            User superAdmin = createSuperAdminUser(tenantId);
+            User tenantAdmin = createTenantAdminUser(tenantId);
+            User employee = createEmployeeUser(tenantId);
 
-        MvcResult tenantAdminResult = staticMockMvc.perform(post(baseUrl + "/auth/login")
-                        .with(httpBasic(tenantAdmin.getEmail(), "password"))
-                )
-                .andExpect(status().isCreated())
-                .andReturn();
+            BASE_URL = baseUrl;
 
-        TENANT_ADMIN_TOKEN = "Bearer " + JsonPath.read(tenantAdminResult.getResponse().getContentAsString(), "$.data.token");
-
-        MvcResult employeeResult = staticMockMvc.perform(post(baseUrl + "/auth/login")
-                        .with(httpBasic(employee.getEmail(), "password"))
-                )
-                .andExpect(status().isCreated())
-                .andReturn();
-
-        EMPLOYEE_TOKEN = "Bearer " + JsonPath.read(employeeResult.getResponse().getContentAsString(), "$.data.token");
+            try {
+                SUPER_ADMIN_TOKEN = getToken(tenantId, superAdmin.getContactEmail());
+                TENANT_ADMIN_TOKEN = getToken(tenantId, tenantAdmin.getContactEmail());
+                EMPLOYEE_TOKEN = getToken(tenantId, employee.getContactEmail());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         RateLimitCheckFilter.enable();
+        TenantContext.clear();
     }
 
-    private static Tenant createTenant(TenantRepository tenantRepository) {
-        Tenant tenant = new Tenant();
-        tenant.setName("Default Tenant");
-        tenant.setEmail("tenant.default@email.com");
-        tenant.setPhone("9999999");
-        tenant.setIndustry("Default Industry");
-        return tenantRepository.save(tenant);
+    protected String getToken(UUID tenantId, String email) throws Exception {
+        SecurityContextHolder.clearContext();
+        TestSecurityContextHolder.clearContext();
+
+        MvcResult result = this.mockMvc.perform(post(BASE_URL + "/auth/login")
+                        .with(httpBasic(email, "password"))
+                        .header("X-Tenant-ID", tenantId)
+                )
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        return "Bearer " + JsonPath.read(result.getResponse().getContentAsString(), "$.data.token");
     }
 
-    private static User createSuperAdminUser(UserRepository userRepository, PasswordEncoder passwordEncoder, Tenant tenant) {
-        UserCredentials credentials = new UserCredentials();
-        credentials.setEmail("superAdmin.default@email.com");
-        credentials.setPassword(passwordEncoder.encode("password"));
-        credentials.setRole(Set.of(SUPER_ADMIN));
-        credentials.setTenant(tenant);
+    protected User createSuperAdminUser(UUID tenantId) {
+        TenantContext.setTenantId(tenantId);
+        UserCredentials credentials = new UserCredentials(
+                "superAdmin.default@email.com",
+                this.passwordEncoder.encode("password")
+        );
 
-        User user = new User();
-        user.setFirstName("Default Super Admin");
-        user.setLastName("Default Super Admin");
-        user.setEmail("superAdmin.default@email.com");
-        user.setUserCredentials(credentials);
-        user.setTenant(tenant);
+        User user = new User(
+                "Default Super Admin",
+                "Default Super Admin",
+                "superAdmin.default@email.com",
+                Set.of(SUPER_ADMIN),
+                credentials,
+                tenantId
+        );
 
-        return userRepository.save(user);
+
+        User saved = userRepository.save(user);
+        TenantContext.setTenantId(TEST_TENANT_ID);
+
+        return saved;
     }
 
-    private static User createTenantAdminUser(UserRepository userRepository, PasswordEncoder passwordEncoder, Tenant tenant) {
-        UserCredentials credentials = new UserCredentials();
-        credentials.setEmail("tenantAdmin.default@email.com");
-        credentials.setPassword(passwordEncoder.encode("password"));
-        credentials.setRole(Set.of(TENANT_ADMIN, EMPLOYEE));
-        credentials.setTenant(tenant);
+    protected User createTenantAdminUser(UUID tenantId) {
+        TenantContext.setTenantId(tenantId);
+        UserCredentials credentials = new UserCredentials(
+                "tenantAdmin.default@email.com",
+                this.passwordEncoder.encode("password")
+        );
 
-        User user = new User();
-        user.setFirstName("Default Tenant Admin");
-        user.setLastName("Default Tenant Admin");
-        user.setEmail("tenantAdmin.default@email.com");
-        user.setUserCredentials(credentials);
-        user.setTenant(tenant);
+        User user = new User(
+                "Default Tenant Admin",
+                "Default Tenant Admin",
+                "tenantAdmin.default@email.com",
+                Set.of(TENANT_ADMIN),
+                credentials,
+                tenantId
+        );
 
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        TenantContext.setTenantId(TEST_TENANT_ID);
+
+        return saved;
     }
 
-    private static User createEmployeeUser(UserRepository userRepository, PasswordEncoder passwordEncoder, Tenant tenant) {
-        UserCredentials credentials = new UserCredentials();
-        credentials.setEmail("employee.default@email.com");
-        credentials.setPassword(passwordEncoder.encode("password"));
-        credentials.setRole(Set.of(EMPLOYEE));
-        credentials.setTenant(tenant);
+    protected User createEmployeeUser(UUID tenantId) {
+        TenantContext.setTenantId(tenantId);
+        UserCredentials credentials = new UserCredentials(
+                "employee.default@email.com",
+                this.passwordEncoder.encode("password")
+        );
 
-        User user = new User();
-        user.setFirstName("Default Employee");
-        user.setLastName("Default Employee");
-        user.setEmail("employee.default@email.com");
-        user.setUserCredentials(credentials);
-        user.setTenant(tenant);
+        User user = new User(
+                "Default Employee",
+                "Default Employee",
+                "employee.default@email.com",
+                Set.of(EMPLOYEE),
+                credentials,
+                tenantId
+        );
 
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        TenantContext.setTenantId(TEST_TENANT_ID);
+
+        return saved;
     }
 
-    protected String getBaseUrl() {
-        return BASE_URL;
+    protected User createUser(User user, UUID tenantId) {
+        TenantContext.setTenantId(tenantId);
+        User saved = userRepository.save(user);
+        TenantContext.setTenantId(TEST_TENANT_ID);
+
+        return saved;
     }
 }

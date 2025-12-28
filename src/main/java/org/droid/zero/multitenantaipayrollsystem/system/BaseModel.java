@@ -1,6 +1,7 @@
 package org.droid.zero.multitenantaipayrollsystem.system;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,12 +14,12 @@ import java.util.UUID;
 
 @MappedSuperclass
 @Getter
-@Setter
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseModel {
     @Id
     @GeneratedValue()
+    @Setter(AccessLevel.PUBLIC)
     private UUID id;
 
     @CreatedDate
@@ -34,4 +35,9 @@ public abstract class BaseModel {
 
     @Version
     private Integer version;
+
+    public void softDelete() {
+        if (this.deletedAt != null) throw new IllegalStateException("Already deleted");
+        this.deletedAt = Instant.now();
+    }
 }

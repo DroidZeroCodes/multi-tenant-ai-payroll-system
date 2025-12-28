@@ -20,8 +20,9 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check login endpoint returns token (POST)")
     void login_shouldReturnToken() throws Exception {
         // Act & Assert
-        this.mockMvc.perform(post(this.getBaseUrl() + "/auth/login")
+        this.mockMvc.perform(post(BASE_URL + "/auth/login")
                         .with(httpBasic("superAdmin.default@email.com", "password"))
+                        .header("X-Tenant-Id", TEST_TENANT_ID)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
@@ -35,7 +36,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check logout endpoint invalidates token (DELETE)")
     void logout_shouldInvalidateToken() throws Exception {
         // Act & Assert
-        this.mockMvc.perform(delete(this.getBaseUrl() + "/auth/logout")
+        this.mockMvc.perform(delete(BASE_URL + "/auth/logout")
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -49,7 +50,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check logout without authorization header (DELETE)")
     void logout_withoutAuthHeader_shouldReturnError() throws Exception {
         // Act & Assert
-        this.mockMvc.perform(delete(this.getBaseUrl() + "/auth/logout")
+        this.mockMvc.perform(delete(BASE_URL + "/auth/logout")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized()); // Or 403 depending on your security config
     }
@@ -58,7 +59,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check logout with invalid token format (DELETE)")
     void logout_withInvalidTokenFormat_shouldReturnError() throws Exception {
         // Act & Assert
-        this.mockMvc.perform(delete(this.getBaseUrl() + "/auth/logout")
+        this.mockMvc.perform(delete(BASE_URL + "/auth/logout")
                         .header(HttpHeaders.AUTHORIZATION, "InvalidTokenFormat")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
@@ -68,7 +69,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check logout with empty bearer token (DELETE)")
     void logout_withEmptyBearerToken_shouldReturnError() throws Exception {
         // Act & Assert
-        this.mockMvc.perform(delete(this.getBaseUrl() + "/auth/logout")
+        this.mockMvc.perform(delete(BASE_URL + "/auth/logout")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer ")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
@@ -78,7 +79,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check login with invalid credentials returns unauthorized")
     void login_withInvalidCredentials_shouldReturnUnauthorized() throws Exception {
         // Act & Assert
-        this.mockMvc.perform(post(this.getBaseUrl() + "/auth/login")
+        this.mockMvc.perform(post(BASE_URL + "/auth/login")
                         .header(HttpHeaders.AUTHORIZATION, "Basic invalid:credentials")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
@@ -88,8 +89,8 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check login with non-existent user returns unauthorized")
     void login_withNonExistentUser_shouldReturnUnauthorized() throws Exception {
         // Act & Assert
-        this.mockMvc.perform(post(this.getBaseUrl() + "/auth/login")
-                        .header(HttpHeaders.AUTHORIZATION, "Basic nonexistent@email.com:password")
+        this.mockMvc.perform(post(BASE_URL + "/auth/login")
+                        .header(HttpHeaders.AUTHORIZATION, "Basic nonexistent@contactEmail.com:password")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }
@@ -98,26 +99,9 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check logout after successful login flow")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void loginAndLogout_workflow() throws Exception {
-        // Login to get a fresh token
-        String responseContent = this.mockMvc.perform(post(this.getBaseUrl() + "/auth/login")
-                        .with(httpBasic("tenantAdmin.default@email.com", "password"))
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.token").exists())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        // Extract token from response
-        String token = objectMapper.readTree(responseContent)
-                .path("data")
-                .path("token")
-                .asText();
-
         //Use the token to log out
-        this.mockMvc.perform(delete(this.getBaseUrl() + "/auth/logout")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+        this.mockMvc.perform(delete(BASE_URL + "/auth/logout")
+                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -127,29 +111,16 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Check multiple logout attempts with same token")
     void multipleLogouts_withSameToken_shouldHandleGracefully() throws Exception {
-        String result = this.mockMvc.perform(post(this.getBaseUrl() + "/auth/login")
-                        .with(httpBasic("employee.default@email.com", "password"))
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        String token = objectMapper.readTree(result)
-                .path("data")
-                .path("token")
-                .asText();
-
         // First logout should succeed
-        this.mockMvc.perform(delete(this.getBaseUrl() + "/auth/logout")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+        this.mockMvc.perform(delete(BASE_URL + "/auth/logout")
+                        .header(HttpHeaders.AUTHORIZATION, EMPLOYEE_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
         // Second logout with same token should return error
-        this.mockMvc.perform(delete(this.getBaseUrl() + "/auth/logout")
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+        this.mockMvc.perform(delete(BASE_URL + "/auth/logout")
+                        .header(HttpHeaders.AUTHORIZATION, EMPLOYEE_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
     }

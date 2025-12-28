@@ -1,21 +1,27 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.user;
 
+import com.jayway.jsonpath.JsonPath;
 import org.apache.http.HttpHeaders;
-import org.droid.zero.multitenantaipayrollsystem.test.config.BaseIntegrationTest;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.dto.CredentialsRegistrationRequest;
+import org.droid.zero.multitenantaipayrollsystem.modules.auth.model.UserCredentials;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.constant.UserRole;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.dto.UserRegistrationRequest;
-import org.junit.jupiter.api.BeforeEach;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
+import org.droid.zero.multitenantaipayrollsystem.test.config.BaseIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Set;
 import java.util.UUID;
 
+import static org.droid.zero.multitenantaipayrollsystem.modules.user.constant.UserRole.EMPLOYEE;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -23,38 +29,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DisplayName("Integration tests for User")
 class UserIntegrationTest extends BaseIntegrationTest {
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private TenantRepository tenantRepository;
-
-    private Tenant testTenant;
-
-    @BeforeEach
-    void setup() {
-        // Create a test tenant
-        testTenant = new Tenant();
-        testTenant.setName("Test Tenant");
-        testTenant.setEmail("test@tenant.com");
-        testTenant.setPhone("1234567890");
-        testTenant.setIndustry("Technology");
-        testTenant = tenantRepository.save(testTenant);
-    }
 
     @Test
     @DisplayName("Check findUserById (GET)")
     void findUserById_Success() throws Exception {
         // Arrange
-        User user = new User();
-        user.setEmail("test@example.com");
-        user.setFirstName("John");
-        user.setLastName("Doe");
-        user.setTenant(testTenant);
-        user = userRepository.save(user);
+        User user = new User(
+                "John",
+                "Doe",
+                "test@example.com",
+                Set.of(EMPLOYEE),
+                new UserCredentials(
+                        "test@example.com",
+                        "password"
+                ),
+                TEST_TENANT_ID
+        );
+        user = createUser(user, TEST_TENANT_ID);
 
         // Act & Assert
-        this.mockMvc.perform(get(this.getBaseUrl() + "/users/" + user.getId())
+        this.mockMvc.perform(get(BASE_URL + "/users/" + user.getId())
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -62,7 +59,7 @@ class UserIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Find One Success"))
                 .andExpect(jsonPath("$.data.firstName").value("John"))
                 .andExpect(jsonPath("$.data.lastName").value("Doe"))
-                .andExpect(jsonPath("$.data.email").value("test@example.com"))
+                .andExpect(jsonPath("$.data.contactEmail").value("test@example.com"))
                 .andExpect(jsonPath("$.errors").isEmpty());
     }
 
@@ -73,7 +70,7 @@ class UserIntegrationTest extends BaseIntegrationTest {
         UUID nonExistentId = UUID.randomUUID();
 
         // Act & Assert
-        this.mockMvc.perform(get(this.getBaseUrl() + "/users/" + nonExistentId)
+        this.mockMvc.perform(get(BASE_URL + "/users/" + nonExistentId)
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
@@ -91,15 +88,21 @@ class UserIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check findUserById (GET) - Forbidden for unauthorized Employee")
     void findUserById_Forbidden_Employee() throws Exception {
         // Arrange
-        User targetUser = new User();
-        targetUser.setEmail("target@example.com");
-        targetUser.setFirstName("Target");
-        targetUser.setLastName("User");
-        targetUser.setTenant(testTenant);
-        targetUser = userRepository.save(targetUser);
+        User targetUser = new User(
+                "Target",
+                "User",
+                "target@example.com",
+                Set.of(EMPLOYEE),
+                new UserCredentials(
+                        "target@example.com",
+                        "password"
+                ),
+                TEST_TENANT_ID
+        );
+        targetUser = createUser(targetUser, TEST_TENANT_ID);
 
         // Act & Assert
-        this.mockMvc.perform(get(this.getBaseUrl() + "/users/" + targetUser.getId())
+        this.mockMvc.perform(get(BASE_URL + "/users/" + targetUser.getId())
                         .header(HttpHeaders.AUTHORIZATION, EMPLOYEE_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
@@ -112,17 +115,17 @@ class UserIntegrationTest extends BaseIntegrationTest {
         UserRegistrationRequest request = new UserRegistrationRequest(
                 "Jane",
                 "Doe",
+                "jane.doe@example.com",
+                        Set.of(UserRole.HR_OFFICER),
                 new CredentialsRegistrationRequest(
                         "jane.doe@example.com",
                         "SecurePass123!",
-                        "SecurePass123!",
-                        Set.of(UserRole.HR_OFFICER)
-                ),
-                testTenant.getId()
+                        "SecurePass123!"
+                )
         );
 
         // Act & Assert
-        this.mockMvc.perform(post(this.getBaseUrl() + "/users")
+        this.mockMvc.perform(post(BASE_URL + "/users")
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -132,7 +135,7 @@ class UserIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Create Success"))
                 .andExpect(jsonPath("$.data.firstName").value("Jane"))
                 .andExpect(jsonPath("$.data.lastName").value("Doe"))
-                .andExpect(jsonPath("$.data.email").value("jane.doe@example.com"))
+                .andExpect(jsonPath("$.data.contactEmail").value("jane.doe@example.com"))
                 .andExpect(jsonPath("$.errors").isEmpty());
     }
 
@@ -143,17 +146,17 @@ class UserIntegrationTest extends BaseIntegrationTest {
         UserRegistrationRequest request = new UserRegistrationRequest(
                 "",
                 "",
+                        "",
+                        Set.of(),
                 new CredentialsRegistrationRequest(
                         "invalidEmailFormat",
                         "",
-                        "",
-                        Set.of()
-                ),
-                null
+                        ""
+                )
         );
 
         // Act & Assert
-        this.mockMvc.perform(post(this.getBaseUrl() + "/users")
+        this.mockMvc.perform(post(BASE_URL + "/users")
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -167,12 +170,12 @@ class UserIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.errors[*].detail",
                         containsInAnyOrder(
                                 "invalid email format",
+                                "contactEmail is required",
                                 "firstName is required",
                                 "lastName is required",
                                 "password is required",
                                 "confirmPassword is required",
-                                "role is required",
-                                "tenantId is required"
+                                "roles is required"
                         )));
     }
 
@@ -183,17 +186,17 @@ class UserIntegrationTest extends BaseIntegrationTest {
         UserRegistrationRequest request = new UserRegistrationRequest(
                 "Hacker",
                 "Employee",
+                "hacker@example.com",
+                Set.of(EMPLOYEE),
                 new CredentialsRegistrationRequest(
                         "hacker@example.com",
                         "Pass123!",
-                        "Pass123!",
-                        Set.of(UserRole.EMPLOYEE)
-                ),
-                testTenant.getId()
+                        "Pass123!"
+                )
         );
 
         // Act & Assert
-        this.mockMvc.perform(post(this.getBaseUrl() + "/users")
+        this.mockMvc.perform(post(BASE_URL + "/users")
                         .header(HttpHeaders.AUTHORIZATION, EMPLOYEE_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -202,44 +205,44 @@ class UserIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("Check email uniqueness is enforced per tenant")
+    @DisplayName("Check contactEmail uniqueness is enforced per tenant")
     void testEmailUniquenessPerTenant() throws Exception {
         // Arrange - Create first user in tenant 1
         UserRegistrationRequest user1Request = new UserRegistrationRequest(
                 "User",
                 "One",
+                "same@contactEmail.com",
+                Set.of(EMPLOYEE),
                 new CredentialsRegistrationRequest(
-                        "same@email.com",
+                        "same@contactEmail.com",
                         "Password123!",
-                        "Password123!",
-                        Set.of(UserRole.EMPLOYEE)
-                ),
-                testTenant.getId()
+                        "Password123!"
+                )
         );
 
         // Act & Assert - First user creation should succeed
-        this.mockMvc.perform(post(this.getBaseUrl() + "/users")
+        this.mockMvc.perform(post(BASE_URL + "/users")
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user1Request))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated());
 
-        // Arrange - Try to create another user with same email in same tenant
+        // Arrange - Try to create another user with same contactEmail in same tenant
         UserRegistrationRequest duplicateEmailRequest = new UserRegistrationRequest(
                 "User",
                 "Two",
+                "same@contactEmail.com",
+                Set.of(EMPLOYEE),
                 new CredentialsRegistrationRequest(
-                        "same@email.com",
+                        "same@contactEmail.com",
                         "Password123!",
-                        "Password123!",
-                        Set.of(UserRole.EMPLOYEE)
-                ),
-                testTenant.getId()
+                        "Password123!"
+                )
         );
 
-        // Act & Assert - Should fail with duplicate email error
-        this.mockMvc.perform(post(this.getBaseUrl() + "/users")
+        // Act & Assert - Should fail with duplicate contactEmail error
+        this.mockMvc.perform(post(BASE_URL + "/users")
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(duplicateEmailRequest))
@@ -249,33 +252,46 @@ class UserIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.message").value("An existing USER already exists with the provided arguments."));
 
         // Arrange - Create a second tenant
-        Tenant secondTenant = new Tenant();
-        secondTenant.setName("Second Tenant");
-        secondTenant.setEmail("second@tenant.com");
-        secondTenant.setPhone("0987654321");
-        secondTenant.setIndustry("Finance");
+        Tenant secondTenant = new Tenant(
+                "Second Tenant",
+                "second@tenant.com",
+                "0987654321",
+                "Finance"
+        );
         secondTenant = tenantRepository.save(secondTenant);
 
-        // Arrange - Try to create user with same email but in different tenant
+        // Arrange - Try to create user with same contactEmail but in different tenant
         UserRegistrationRequest differentTenantRequest = new UserRegistrationRequest(
                 "User",
                 "Three",
-                new CredentialsRegistrationRequest("same@email.com",
+                "same@contactEmail.com",
+                Set.of(EMPLOYEE),
+                new CredentialsRegistrationRequest(
+                        "same@contactEmail.com",
                         "Password123!",
-                        "Password123!",
-                        Set.of(UserRole.EMPLOYEE)
-                        ),
-                secondTenant.getId()
+                        "Password123!"
+                        )
         );
 
+        User secondTenantAdmin = createSuperAdminUser(secondTenant.getId());
+
+        MvcResult result = this.mockMvc.perform(post(BASE_URL + "/auth/login")
+                        .with(httpBasic(secondTenantAdmin.getUsername(), "password"))
+                        .header("X-Tenant-ID", secondTenant.getId())
+                )
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String secondTenantAdminToken = "Bearer " + JsonPath.read(result.getResponse().getContentAsString(), "$.data.token");
+
         // Act & Assert - Should succeed as it's a different tenant
-        this.mockMvc.perform(post(this.getBaseUrl() + "/users")
-                        .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
+        this.mockMvc.perform(post(BASE_URL + "/users")
+                        .header(HttpHeaders.AUTHORIZATION, secondTenantAdminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(differentTenantRequest))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.email").value("same@email.com"));
+                .andExpect(jsonPath("$.data.contactEmail").value("same@contactEmail.com"));
     }
 }

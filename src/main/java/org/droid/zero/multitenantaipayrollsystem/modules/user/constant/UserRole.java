@@ -1,4 +1,4 @@
-package org.droid.zero.multitenantaipayrollsystem.modules.user;
+package org.droid.zero.multitenantaipayrollsystem.modules.user.constant;
 
 public enum UserRole {
     SUPER_ADMIN,

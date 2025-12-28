@@ -1,21 +1,19 @@
-package org.droid.zero.multitenantaipayrollsystem.modules.user;
+package org.droid.zero.multitenantaipayrollsystem.modules.user.service;
 
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.events.TenantCreatedEvent;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.dto.UserRegistrationRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.dto.UserResponse;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.UUID;
 
 public interface UserService {
     UserResponse findById(UUID userId);
 
-    User findByEmail(String email);
-
     UserResponse save(UserRegistrationRequest request);
 
-    @EventListener
+    @TransactionalEventListener
     @Async
     void handleTenantCreatedEvent(TenantCreatedEvent event);
 }

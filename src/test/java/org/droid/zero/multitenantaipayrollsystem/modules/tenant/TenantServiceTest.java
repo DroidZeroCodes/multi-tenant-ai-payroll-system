@@ -44,18 +44,20 @@ class TenantServiceTest extends BaseUnitTest {
 
     private Tenant tenant;
     private TenantRequest tenantRequest;
-    private final UUID tenantId = UUID.randomUUID();
+    private UUID tenantId;
 
     @BeforeEach
     void setUp() {
         tenantService = new TenantServiceImpl(tenantRepository, tenantMapper, applicationEventPublisher);
 
-        tenant = new Tenant();
-        tenant.setId(tenantId);
-        tenant.setName("Tenant Name");
-        tenant.setEmail("test@example.com");
-        tenant.setPhone("11111111111");
-        tenant.setIndustry("Test Industry");
+        tenant = new Tenant(
+                "Tenant Name",
+                "test@example.com",
+                "11111111111",
+                "Test Industry"
+        );
+        tenant.setId(UUID.randomUUID());
+        tenantId = tenant.getId();
 
         tenantRequest = new TenantRequest(
                 "Tenant Name",
@@ -71,7 +73,7 @@ class TenantServiceTest extends BaseUnitTest {
         when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
 
         //Act
-        TenantResponse foundTenant = tenantService.findByIdResponse(tenantId);
+        TenantResponse foundTenant = tenantService.findById(tenantId);
 
         //Assert
         assertEquals(tenantId, foundTenant.id());
@@ -155,7 +157,7 @@ class TenantServiceTest extends BaseUnitTest {
                 .hasMessage("An existing TENANT already exists with the provided arguments.");
 
         assertThat(thrown.getFields())
-                .containsExactlyInAnyOrder("name", "email", "phone");
+                .containsExactlyInAnyOrder("name", "contactEmail", "phone");
 
         assertThat(thrown.getResourceType())
                 .isEqualTo(TENANT);
@@ -197,13 +199,14 @@ class TenantServiceTest extends BaseUnitTest {
     @Test
     void updateTenant_shouldReturnTenant_whenRequestIsValid() {
         //Arrange
-        UUID existingTenantId = UUID.randomUUID();
-        Tenant existingTenant = new Tenant();
-        existingTenant.setId(existingTenantId);
-        existingTenant.setName("oldTenantName");
-        existingTenant.setEmail("old@email.com");
-        existingTenant.setPhone("222222222");
-        existingTenant.setIndustry("oldIndustry");
+        Tenant existingTenant = new Tenant(
+                "oldTenantName",
+                "old@contactEmail.com",
+                "222222222",
+                "oldIndustry"
+        );
+        existingTenant.setId(UUID.randomUUID());
+        UUID existingTenantId = existingTenant.getId();
 
         when(tenantRepository.findById(existingTenantId)).thenReturn(Optional.of(existingTenant));
         when(tenantRepository.existsByNameIgnoreCaseAndIdNot(anyString(), any(UUID.class))).thenReturn(false);
@@ -302,7 +305,6 @@ class TenantServiceTest extends BaseUnitTest {
         //Act - First toggle
         boolean firstToggle = tenantService.toggleTenantStatus(tenantId);
         // Simulate the second toggle by changing the tenant's state
-        tenant.setActive(false);
         boolean secondToggle = tenantService.toggleTenantStatus(tenantId);
 
         //Assert
@@ -332,17 +334,18 @@ class TenantServiceTest extends BaseUnitTest {
     @Test
     void updateTenant_shouldUpdateIndustry_whenRequestIsValid() {
         //Arrange
-        UUID existingTenantId = UUID.randomUUID();
-        Tenant existingTenant = new Tenant();
-        existingTenant.setId(existingTenantId);
-        existingTenant.setName("oldName");
-        existingTenant.setEmail("old@email.com");
-        existingTenant.setPhone("222222222");
-        existingTenant.setIndustry("oldIndustry");
+        Tenant existingTenant = new Tenant(
+                "oldTenantName",
+                "old@contactEmail.com",
+                "222222222",
+                "oldIndustry"
+        );
+        existingTenant.setId(UUID.randomUUID());
+        UUID existingTenantId = existingTenant.getId();
 
         TenantRequest updateRequest = new TenantRequest(
                 "newName",
-                "new@email.com",
+                "new@contactEmail.com",
                 "333333333",
                 "newIndustry"
         );

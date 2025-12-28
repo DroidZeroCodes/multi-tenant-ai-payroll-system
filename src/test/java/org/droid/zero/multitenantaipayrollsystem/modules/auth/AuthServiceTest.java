@@ -4,6 +4,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.dto.AuthTokenDto;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.dto.ChangeEmailRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.dto.ChangePasswordRequest;
+import org.droid.zero.multitenantaipayrollsystem.modules.auth.model.UserCredentials;
+import org.droid.zero.multitenantaipayrollsystem.modules.auth.repository.UserCredentialsRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.auth.service.AuthServiceImpl;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
 import org.droid.zero.multitenantaipayrollsystem.security.jwt.TokenService;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.test.config.BaseUnitTest;
@@ -47,6 +51,7 @@ class AuthServiceTest extends BaseUnitTest {
     private AuthServiceImpl authService;
 
     private UserCredentials userCredentials;
+
     private final UUID userId = UUID.randomUUID();
     private final String email = "test@example.com";
     private final String hashedPassword = "$2a$10$hashedPassword";
@@ -55,39 +60,10 @@ class AuthServiceTest extends BaseUnitTest {
     void setUp() {
         authService = new AuthServiceImpl(credentialsRepository, tokenService, passwordEncoder);
 
-        userCredentials = new UserCredentials();
-        userCredentials.setId(userId);
-        userCredentials.setEmail(email);
-        userCredentials.setPassword(hashedPassword);
-    }
-
-    @Test
-    void findByEmail_shouldReturnUserCredentials_whenEmailExists() {
-        // Arrange
-        when(credentialsRepository.findByEmailIgnoreCase(email))
-                .thenReturn(Optional.of(userCredentials));
-
-        // Act
-        UserCredentials result = authService.findByEmail(email);
-
-        // Assert
-        assertThat(result).isNotNull();
-        assertThat(result.getEmail()).isEqualTo(email);
-        verify(credentialsRepository, times(1)).findByEmailIgnoreCase(email);
-    }
-
-    @Test
-    void findByEmail_shouldThrowException_whenEmailDoesNotExist() {
-        // Arrange
-        when(credentialsRepository.findByEmailIgnoreCase(email))
-                .thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThatThrownBy(() -> authService.findByEmail(email))
-                .isInstanceOf(ObjectNotFoundException.class)
-                .hasMessageContaining("Could not find " + USER + " with email '" + email +"'.");
-
-        verify(credentialsRepository, times(1)).findByEmailIgnoreCase(email);
+        userCredentials = new UserCredentials(
+                email,
+                hashedPassword
+        );
     }
 
     @Test
@@ -118,7 +94,7 @@ class AuthServiceTest extends BaseUnitTest {
         // Act & Assert
         assertThatThrownBy(() -> authService.changeEmail(changeEmailRequest, userId))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("new email must not be the same as old email");
+                .hasMessage("new contactEmail must not be the same as old contactEmail");
 
         verify(credentialsRepository, times(1)).findByUserId(userId);
     }
@@ -224,7 +200,7 @@ class AuthServiceTest extends BaseUnitTest {
         // Act & Assert
         assertThatThrownBy(() -> authService.changePassword(changePasswordRequest, userId))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("new email must not be the same as old password");
+                .hasMessage("new contactEmail must not be the same as old password");
 
         verify(passwordEncoder, times(2)).matches("samePassword", hashedPassword); //oldPassword and newPassword have the same value so it is merged
         verify(credentialsRepository, times(1)).findByUserId(userId);
@@ -234,16 +210,19 @@ class AuthServiceTest extends BaseUnitTest {
     void createToken_shouldReturnAuthTokenDto_withGeneratedToken() {
         // Arrange
         String generatedToken = "generated.jwt.token";
-        when(tokenService.generateToken(authentication))
+        String tenantId = UUID.randomUUID().toString();
+
+        when(request.getHeader("X-Tenant-ID")).thenReturn(tenantId);
+        when(tokenService.generateToken(any(Authentication.class), eq(tenantId)))
                 .thenReturn(generatedToken);
 
         // Act
-        AuthTokenDto result = authService.createToken(authentication);
+        AuthTokenDto result = authService.createToken(request);
 
         // Assert
         assertThat(result).isNotNull();
         assertThat(result.token()).isEqualTo(generatedToken);
-        verify(tokenService, times(1)).generateToken(authentication);
+        verify(tokenService, times(1)).generateToken(any(Authentication.class), eq(tenantId));
     }
 
     @Test
@@ -252,15 +231,13 @@ class AuthServiceTest extends BaseUnitTest {
         String token = "valid.jwt.token";
         when(request.getHeader("Authorization"))
                 .thenReturn("Bearer " + token);
-        when(authentication.getPrincipal())
-                .thenReturn(userCredentials);
 
         // Act
-        authService.invalidateToken(request, authentication);
+        authService.invalidateToken(request);
 
         // Assert
-        verify(tokenService, times(1)).blacklistToken(token, userCredentials);
-        verify(authentication, times(1)).setAuthenticated(false);
+        verify(tokenService, times(1))
+                .blacklistToken(eq(token), any(User.class));
     }
 
     @Test
@@ -270,7 +247,7 @@ class AuthServiceTest extends BaseUnitTest {
                 .thenReturn("Bearer ");
 
         // Act & Assert
-        assertThatThrownBy(() -> authService.invalidateToken(request, authentication))
+        assertThatThrownBy(() -> authService.invalidateToken(request))
                 .isInstanceOf(BadCredentialsException.class)
                 .hasMessage("Invalid token.");
 
@@ -285,7 +262,7 @@ class AuthServiceTest extends BaseUnitTest {
                 .thenReturn(null);
 
         // Act & Assert
-        assertThatThrownBy(() -> authService.invalidateToken(request, authentication))
+        assertThatThrownBy(() -> authService.invalidateToken(request))
                 .isInstanceOf(BadCredentialsException.class)
                 .hasMessage("Invalid token.");
 
@@ -300,7 +277,7 @@ class AuthServiceTest extends BaseUnitTest {
                 .thenReturn("Basic token");
 
         // Act & Assert
-        assertThatThrownBy(() -> authService.invalidateToken(request, authentication))
+        assertThatThrownBy(() -> authService.invalidateToken(request))
                 .isInstanceOf(BadCredentialsException.class)
                 .hasMessage("Invalid token.");
 

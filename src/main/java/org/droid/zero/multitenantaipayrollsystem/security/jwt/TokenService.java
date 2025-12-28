@@ -5,7 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.client.redis.RedisCacheClient;
-import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentials;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -35,7 +35,7 @@ public class TokenService {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(Authentication authentication) {
+    public String generateToken(Authentication authentication, String tenantId) {
         String username = authentication.getName();
 
          String roles = authentication.getAuthorities().stream()
@@ -48,8 +48,8 @@ public class TokenService {
                 .subject(username)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(JWT_EXPIRATION_MILLIS, ChronoUnit.MILLIS)))
-                .claim("userId", ((UserCredentials)(authentication.getPrincipal())).getUser().getId())
-                .claim("tenantId", ((UserCredentials)(authentication.getPrincipal())).getTenant().getId())
+                .claim("userId", ((User)(authentication.getPrincipal())).getId())
+                .claim("tenantId", tenantId)
                 .claim("roles", roles)
                 .signWith(getSigningKey())
                 .compact();
@@ -74,7 +74,7 @@ public class TokenService {
         }
     }
 
-    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+    public  <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
