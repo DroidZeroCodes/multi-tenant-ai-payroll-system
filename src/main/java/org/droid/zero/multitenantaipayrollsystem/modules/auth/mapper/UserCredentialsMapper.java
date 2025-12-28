@@ -1,7 +1,7 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.auth.mapper;
 
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.dto.CredentialsRegistrationRequest;
-import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentials;
+import org.droid.zero.multitenantaipayrollsystem.modules.auth.model.UserCredentials;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
 

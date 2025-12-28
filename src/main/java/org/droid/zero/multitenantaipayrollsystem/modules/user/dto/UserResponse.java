@@ -6,5 +6,5 @@ public record UserResponse(
         UUID id,
         String firstName,
         String lastName,
-        String email
+        String contactEmail
 ) {}
