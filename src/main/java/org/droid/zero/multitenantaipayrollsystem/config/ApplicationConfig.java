@@ -62,6 +62,7 @@ public class ApplicationConfig {
                 if (!user.isEnabled()) throw new UsernameNotFoundException("Account is disabled");
 
                 user.loadActiveRoles();
+                user.getUserCredentials().auditLogin();
 
                 return user;
             } catch (Exception e) {

@@ -89,11 +89,9 @@ public class UserServiceImpl extends BaseService implements UserService {
         if (!tenantRepository.existsById(tenantId)) throw new ObjectNotFoundException(TENANT, tenantId, "tenantId");
 
         //Validate if the provided arguments does not violate unique constraints
-        userRepository.findByContactEmail(request.contactEmail()).ifPresent(user -> {
-            new FieldDuplicateValidator()
-                    .addField(user.getTenantIds().contains(tenantId), "contactEmail")
-                    .validate(USER);
-        });
+        userRepository.findByContactEmail(request.contactEmail()).ifPresent(user -> new FieldDuplicateValidator()
+                .addField(user.getTenantIds().contains(tenantId), "contactEmail")
+                .validate(USER));
 
         //Convert request to an entity to be persisted and set the tenant
         User user = new User(

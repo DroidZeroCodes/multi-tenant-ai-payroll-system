@@ -10,7 +10,6 @@ import java.util.UUID;
 @Repository
 public interface UserCredentialsRepository extends JpaRepository<UserCredentials, UUID> {
 
-    Optional<UserCredentials> findByEmailIgnoreCase(String email);
-
     Optional<UserCredentials> findByUserId(UUID userId);
+
 }

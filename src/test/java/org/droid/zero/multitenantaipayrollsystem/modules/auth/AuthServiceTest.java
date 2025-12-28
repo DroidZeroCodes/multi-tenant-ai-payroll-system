@@ -21,12 +21,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.droid.zero.multitenantaipayrollsystem.modules.user.constant.UserRole.EMPLOYEE;
 import static org.droid.zero.multitenantaipayrollsystem.system.ResourceType.USER;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -52,10 +50,9 @@ class AuthServiceTest extends BaseUnitTest {
 
     private AuthServiceImpl authService;
 
-    private User user;
     private UserCredentials userCredentials;
 
-    private UUID userId;
+    private final UUID userId = UUID.randomUUID();
     private final String email = "test@example.com";
     private final String hashedPassword = "$2a$10$hashedPassword";
 
@@ -66,14 +63,6 @@ class AuthServiceTest extends BaseUnitTest {
         userCredentials = new UserCredentials(
                 email,
                 hashedPassword
-        );
-        user = new User(
-                "firstName",
-                "lastName",
-                "contactEmail",
-                Set.of(EMPLOYEE),
-                userCredentials,
-                null
         );
     }
 

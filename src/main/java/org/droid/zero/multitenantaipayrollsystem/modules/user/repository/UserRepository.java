@@ -1,7 +1,5 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.user.repository;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.constant.UserRole;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,10 +14,6 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
 
     Optional<User> findByIdAndUserTenantRoles_TenantId(UUID userId, UUID tenantId);
-
-    boolean existsByContactEmailIgnoreCaseAndUserTenantRoles_TenantId(@NotBlank(message = "contactEmail is required") @Email(message = "invalid contactEmail format") String email, UUID tenantId);
-
-    Optional<User> findByUserCredentials_EmailIgnoreCase(String userCredentialsEmail);
 
     Optional<User> findByUserCredentials_EmailIgnoreCase_AndUserTenantRoles_TenantId(String username, UUID tenantId);
 
