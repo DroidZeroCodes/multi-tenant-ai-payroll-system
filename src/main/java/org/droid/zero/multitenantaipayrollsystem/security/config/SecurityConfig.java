@@ -3,6 +3,7 @@ package org.droid.zero.multitenantaipayrollsystem.security.config;
 import lombok.RequiredArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.security.filters.JwtAuthenticationFilter;
 import org.droid.zero.multitenantaipayrollsystem.security.filters.RateLimitCheckFilter;
+import org.droid.zero.multitenantaipayrollsystem.security.filters.TenantContextFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,7 @@ public class SecurityConfig {
     private String baseUrl;
 
     private final JwtAuthenticationFilter jwtAuthFilter;
+    private final TenantContextFilter tenantContextFilter;
     private final RateLimitCheckFilter rateLimitCheckFilter;
     private final CustomBasicAuthenticationEntryPoint customBasicAuthenticationEntryPoint;
     private final CustomBearerTokenAuthenticationEntryPoint customBearerTokenAuthenticationEntryPoint;
@@ -48,6 +50,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(rateLimitCheckFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(tenantContextFilter, RateLimitCheckFilter.class)
                 .build();
     }
 
@@ -74,6 +77,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(tenantContextFilter, JwtAuthenticationFilter.class)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .build();
     }
