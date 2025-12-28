@@ -9,7 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.client.redis.RedisCacheClient;
 import org.droid.zero.multitenantaipayrollsystem.system.api.ErrorObject;
 import org.droid.zero.multitenantaipayrollsystem.system.api.ResponseFactory;
+import org.droid.zero.multitenantaipayrollsystem.system.util.HeaderUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -30,6 +32,9 @@ public class RateLimitCheckFilter extends OncePerRequestFilter {
     private final RedisCacheClient redis;
     private final ObjectMapper objectMapper;
 
+    @Value("${auth.disable-login-rate-limit}")
+    private boolean disableRateLimit = false;
+
     public static void disable() {
         DISABLED.set(true);
     }
@@ -44,17 +49,20 @@ public class RateLimitCheckFilter extends OncePerRequestFilter {
             @NotNull HttpServletResponse response,
             @NotNull FilterChain filterChain
     ) throws ServletException, IOException {
+        DISABLED.set(disableRateLimit);
 
         if (DISABLED.get()) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 1. Get the email from the request header
+        // 1. Get the contactEmail from the request header
         String email = null;
+        String tenantId = null;
 
         try {
             email = extractBasicAuthUsername(request);
+            tenantId = HeaderUtils.extractTenantId(request);
         } catch (Exception ignored) {}
 
         var error = ResponseFactory.error(
@@ -67,9 +75,9 @@ public class RateLimitCheckFilter extends OncePerRequestFilter {
                         new ErrorObject.Source("rate_limit")
                 )));
 
-        if (email != null) {
+        if (email != null || tenantId != null) {
             // 2. Check the rate limit in Redis
-            if (redis.isRateLimitExceeded(email)) {
+            if (redis.isRateLimitExceeded(email, tenantId)) {
                 response.setStatus(TOO_MANY_REQUESTS.value());
                 response.getWriter().write(objectMapper.writeValueAsString(error));
                 return;
