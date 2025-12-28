@@ -1,13 +1,17 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.user;
 
-import org.droid.zero.multitenantaipayrollsystem.modules.auth.UserCredentials;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.dto.CredentialsRegistrationRequest;
-import org.droid.zero.multitenantaipayrollsystem.modules.auth.mapper.UserCredentialsMapper;
+import org.droid.zero.multitenantaipayrollsystem.modules.auth.model.UserCredentials;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.dto.UserRegistrationRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.dto.UserResponse;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.mapper.UserMapper;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.repository.UserRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.service.UserServiceImpl;
+import org.droid.zero.multitenantaipayrollsystem.system.TenantExecutor;
+import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.DuplicateResourceException;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.test.config.BaseUnitTest;
@@ -27,7 +31,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowableOfType;
-import static org.droid.zero.multitenantaipayrollsystem.modules.user.UserRole.EMPLOYEE;
+import static org.droid.zero.multitenantaipayrollsystem.modules.user.constant.UserRole.EMPLOYEE;
 import static org.droid.zero.multitenantaipayrollsystem.system.ResourceType.USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -44,53 +48,71 @@ class UserServiceTest extends BaseUnitTest {
     @Mock
     private TenantRepository tenantRepository;
 
+    @Mock TenantExecutor tenantExecutor;
+
     private final PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
     private final UserMapper userMapper = Mappers.getMapper(UserMapper.class);
-    private final UserCredentialsMapper credentialsMapper = Mappers.getMapper(UserCredentialsMapper.class);
 
     private UserServiceImpl userService;
 
-    private Tenant tenant;
     private User user;
     private UserRegistrationRequest userRegistrationRequest;
-    private final UUID userId = UUID.randomUUID();
-    private final UUID tenantId = UUID.randomUUID();
+    private UUID userId;
+    private UUID tenantId;
 
     @BeforeEach
     void setUp() {
-        userService = new UserServiceImpl(userRepository, tenantRepository, userMapper, credentialsMapper, passwordEncoder);
+        userService = new UserServiceImpl(
+                userRepository,
+                tenantRepository,
+                userMapper,
+                passwordEncoder,
+                tenantExecutor
+        );
 
-        tenant = new Tenant();
-        tenant.setId(tenantId);
+        Tenant tenant = new Tenant();
+        tenant.setId(UUID.randomUUID());
+        tenantId = tenant.getId();
+        TenantContext.setTenantId(tenant.getId());
 
-        user = new User();
-        user.setId(userId);
-        user.setEmail("test@example.com");
-        user.setFirstName("Test");
-        user.setLastName("User");
-        user.setTenant(tenant);
+        user = new User(
+                "Test",
+                "User",
+                "test@example.com",
+                Set.of(EMPLOYEE),
+                new UserCredentials(
+                        "test@example.com",
+                        "password"
+                ),
+                tenantId
+        );
+        user.setId(UUID.randomUUID());
+        userId = user.getId();
 
-        UserCredentials credentials = new UserCredentials();
-        credentials.setEmail("test@example.com");
-        credentials.setPassword("hashedPassword");
+//        UserCredentials credentials = new UserCredentials(
+//                "test@example.com",
+//                "hashedPassword",
+//                Set.of(EMPLOYEE),
+//                tenant
+//        );
 
         userRegistrationRequest = new UserRegistrationRequest(
                 "Test",
                 "User",
+                "test@example.com",
+                Set.of(EMPLOYEE),
                 new CredentialsRegistrationRequest(
                         "test@example.com",
                         "password",
-                        "password",
-                        Set.of(EMPLOYEE)
-                ),
-                tenantId
+                        "password"
+                )
         );
     }
 
     @Test
     void findById_shouldReturnUser_whenUserExists() {
         // Arrange
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findByIdAndUserTenantRoles_TenantId(userId, TenantContext.getTenantId())).thenReturn(Optional.of(user));
 
         // Act
         UserResponse foundUser = userService.findById(userId);
@@ -98,29 +120,29 @@ class UserServiceTest extends BaseUnitTest {
         // Assert
         assertThat(foundUser).isNotNull();
         assertThat(foundUser.id()).isEqualTo(userId);
-        assertThat(foundUser.email()).isEqualTo("test@example.com");
-        verify(userRepository, times(1)).findById(userId);
+        assertThat(foundUser.contactEmail()).isEqualTo("test@example.com");
+        verify(userRepository, times(1)).findByIdAndUserTenantRoles_TenantId(userId, TenantContext.getTenantId());
     }
 
     @Test
     void findById_shouldThrowException_whenUserDoesNotExist() {
         // Arrange
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findByIdAndUserTenantRoles_TenantId(userId, TenantContext.getTenantId())).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThatThrownBy(() -> userService.findById(userId))
                 .isInstanceOf(ObjectNotFoundException.class)
                 .hasMessage("Could not find USER with ID '" + userId + "'.");
         
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findByIdAndUserTenantRoles_TenantId(userId, TenantContext.getTenantId());
     }
 
     @Test
     void save_shouldSaveAndReturnUser_whenRequestIsValid() {
         // Arrange
-        when(userRepository.existsByEmailIgnoreCaseAndTenantId(anyString(), any(UUID.class))).thenReturn(false);
+        when(tenantRepository.existsById(tenantId)).thenReturn(true);
+        when(userRepository.findByContactEmail(anyString())).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(user);
-        when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
         // Act
         UserResponse savedUser = userService.save(userRegistrationRequest);
 
@@ -129,17 +151,16 @@ class UserServiceTest extends BaseUnitTest {
         assertEquals(userId, savedUser.id());
         assertEquals("Test", savedUser.firstName());
         assertEquals("User", savedUser.lastName());
-        assertEquals("test@example.com", savedUser.email());
+        assertEquals("test@example.com", savedUser.contactEmail());
 
-        verify(userRepository, times(1)).existsByEmailIgnoreCaseAndTenantId(anyString(), any(UUID.class));
         verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
     void save_shouldThrowException_whenEmailAlreadyExists() {
         // Arrange
-        when(userRepository.existsByEmailIgnoreCaseAndTenantId(anyString(), any(UUID.class))).thenReturn(true);
-        when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
+        when(tenantRepository.existsById(tenantId)).thenReturn(true);
+        when(userRepository.findByContactEmail(anyString())).thenReturn(Optional.of(user));
 
         // Act
         DuplicateResourceException thrown = catchThrowableOfType(
@@ -152,11 +173,11 @@ class UserServiceTest extends BaseUnitTest {
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessage("An existing USER already exists with the provided arguments.");
         
-        verify(userRepository, times(1)).existsByEmailIgnoreCaseAndTenantId(anyString(), any(UUID.class));
+        verify(userRepository, times(1)).findByContactEmail(anyString());
         verifyNoMoreInteractions(userRepository);
 
         assertThat(thrown.getFields())
-                .containsExactlyInAnyOrder("email");
+                .containsExactlyInAnyOrder("contactEmail");
 
         assertThat(thrown.getResourceType())
                 .isEqualTo(USER);

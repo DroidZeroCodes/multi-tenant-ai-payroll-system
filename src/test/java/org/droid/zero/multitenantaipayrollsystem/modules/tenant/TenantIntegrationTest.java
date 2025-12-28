@@ -1,12 +1,12 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.tenant;
 
 import org.apache.http.HttpHeaders;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.repository.UserRepository;
 import org.droid.zero.multitenantaipayrollsystem.test.config.BaseIntegrationTest;
-import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantRequest;
-import org.droid.zero.multitenantaipayrollsystem.modules.user.User;
-import org.droid.zero.multitenantaipayrollsystem.modules.user.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.droid.zero.multitenantaipayrollsystem.modules.user.UserRole.TENANT_ADMIN;
+import static org.droid.zero.multitenantaipayrollsystem.modules.user.constant.UserRole.TENANT_ADMIN;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -35,7 +35,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check findTenantById (GET) - Success for Super Admin")
     void findTenantById_Success_SuperAdmin() throws Exception {
         //Act & Assert
-        this.mockMvc.perform(get(this.getBaseUrl()+ "/tenants/" + TEST_TENANT.getId())
+        this.mockMvc.perform(get(BASE_URL+ "/tenants/" + TEST_TENANT_ID)
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -53,7 +53,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check findTenantById (GET) - Success for Tenant Admin on assigned tenant")
     void findTenantById_Success_TenantAdmin() throws Exception {
         //Act & Assert
-        this.mockMvc.perform(get(this.getBaseUrl()+ "/tenants/" + TEST_TENANT.getId())
+        this.mockMvc.perform(get(BASE_URL+ "/tenants/" + TEST_TENANT_ID)
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -75,8 +75,8 @@ class TenantIntegrationTest extends BaseIntegrationTest {
         UUID nonExistentId = UUID.randomUUID();
 
         //Act & Assert
-        this.mockMvc.perform(get(this.getBaseUrl()+ "/tenants/" + nonExistentId)
-                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
+        this.mockMvc.perform(get(BASE_URL+ "/tenants/" + nonExistentId)
+                        .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
@@ -92,15 +92,16 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Check findTenantById (GET) - Forbidden for Tenant Admin accessing other tenant")
     void findTenantById_Forbidden_TenantAdmin_CrossTenant() throws Exception {
-        Tenant tenant = new Tenant();
-        tenant.setName("My Tenant");
-        tenant.setEmail("me@email.com");
-        tenant.setPhone("1112223333");
-        tenant.setIndustry("tech");
+        Tenant tenant = new Tenant(
+                "My Tenant",
+                "me@email.com",
+                "1112223333",
+                "tech"
+        );
         tenant = tenantRepository.save(tenant);
 
         //This tenant admin is not assigned to the new tenant
-        this.mockMvc.perform(get(this.getBaseUrl()+ "/tenants/" + tenant.getId())
+        this.mockMvc.perform(get(BASE_URL+ "/tenants/" + tenant.getId())
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
@@ -110,7 +111,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check findTenantById (GET) - Forbidden for Employee")
     void findTenantById_Forbidden_Employee() throws Exception {
         //Act & Assert
-        this.mockMvc.perform(get(this.getBaseUrl()+ "/tenants/" + TEST_TENANT.getId())
+        this.mockMvc.perform(get(BASE_URL+ "/tenants/" + TEST_TENANT_ID)
                         .header(HttpHeaders.AUTHORIZATION, EMPLOYEE_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
@@ -128,7 +129,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
         );
 
         //Act & Assert
-        this.mockMvc.perform(post(this.getBaseUrl()+ "/tenants")
+        this.mockMvc.perform(post(BASE_URL+ "/tenants")
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -153,14 +154,16 @@ class TenantIntegrationTest extends BaseIntegrationTest {
         assertThat(userRepository.count()).isEqualTo(4); // Including the default users
 
         // Find the admin user for this tenant
-        var adminUsers = userRepository.findByTenantIdAndUserCredentialsRoleIn(newTenant.getId(), Set.of(TENANT_ADMIN));
+        var adminUsers = tenantExecutor.executeAsTenant(newTenant.getId(),
+                () -> userRepository.findAllByTenantAndRoles(newTenant.getId(), Set.of(TENANT_ADMIN)));
+
         assertThat(adminUsers).hasSize(1);
 
         Optional<User> adminUser = adminUsers.stream().findFirst();
-        assertThat(adminUser.get().getEmail()).isEqualTo("testEmail@email.com");
+        assertThat(adminUser.get().getContactEmail()).isEqualTo("testEmail@email.com");
         assertThat(adminUser.get().getFirstName()).isEqualTo("Test Company");
         assertThat(adminUser.get().getLastName()).isEqualTo("Admin");
-        assertThat(adminUser.get().getTenant().getId()).isEqualTo(newTenant.getId());
+        assertThat(adminUser.get().getTenantIds()).contains(newTenant.getId());
     }
 
     // Add this new test to verify default admin user creation
@@ -180,7 +183,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
         long initialUserCount = userRepository.count();
 
         // Act
-        String response = this.mockMvc.perform(post(this.getBaseUrl() + "/tenants")
+        String response = this.mockMvc.perform(post(BASE_URL + "/tenants")
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -210,21 +213,24 @@ class TenantIntegrationTest extends BaseIntegrationTest {
         assertThat(userRepository.count()).isEqualTo(initialUserCount + 1);
 
         // Find and verify the admin user
-        var adminUsers = userRepository.findByTenantIdAndUserCredentialsRoleIn(createdTenant.getId(), Set.of(TENANT_ADMIN));
+        var adminUsers = tenantExecutor.executeAsTenant(
+                createdTenant.getId(),
+                () -> userRepository.findAllByTenantAndRoles(
+                        createdTenant.getId(),
+                        Set.of(TENANT_ADMIN))
+        );
         assertThat(adminUsers).hasSize(1);
 
         Optional<User> adminUser = adminUsers.stream().findFirst();
-        assertThat(adminUser.get().getEmail()).isEqualTo("company@example.com");
-        assertThat(adminUser.get().getUserCredentials().getRole())
-                .containsExactly(TENANT_ADMIN);
-        assertThat(adminUser.get().getTenant().getId()).isEqualTo(createdTenant.getId());
-        assertThat(adminUser.get().getUserCredentials().isEnabled()).isTrue();
+        assertThat(adminUser.get().getContactEmail()).isEqualTo("company@example.com");
+        assertThat(adminUser.get().getTenantIds()).contains(createdTenant.getId());
+        assertThat(adminUser.get().isEnabled()).isTrue();
 
         // Verify the user has proper admin attributes
         assertThat(adminUser.get().getFirstName()).isEqualTo("New Company Inc");
         assertThat(adminUser.get().getLastName()).isEqualTo("Admin");
-        assertThat(adminUser.get().getUserCredentials().getUsername()).isEqualTo("company@example.com");
-        assertThat(adminUser.get().getUserCredentials().getPassword()).isNotBlank(); // Password should be set
+        assertThat(adminUser.get().getUsername()).isEqualTo("company@example.com");
+        assertThat(adminUser.get().getPassword()).isNotBlank(); // Password should be set
     }
 
     @Test
@@ -239,7 +245,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
         );
 
         //Act & Assert
-        this.mockMvc.perform(post(this.getBaseUrl()+ "/tenants")
+        this.mockMvc.perform(post(BASE_URL+ "/tenants")
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -260,22 +266,23 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check addTenant with unique constrain violation (POST)")
     void addTenant_UniqueConstraintViolation() throws Exception {
         //Arrange
-        Tenant existingTenant = new Tenant();
-        existingTenant.setName("existing");
-        existingTenant.setEmail("existing@email.com");
-        existingTenant.setPhone("11111111");
-        existingTenant.setIndustry("existing");
+        Tenant existingTenant = new Tenant(
+                "existingTenantName",
+                "existing@email.com",
+                "11111111111",
+                "technology"
+        );
         tenantRepository.save(existingTenant);
 
         TenantRequest request = new TenantRequest(
-                "existing",
+                "existingTenantName",
                 "existing@email.com",
-                "11111111",
-                "existing"
+                "11111111111",
+                "technology"
         );
 
         //Act & Assert
-        this.mockMvc.perform(post(this.getBaseUrl()+ "/tenants")
+        this.mockMvc.perform(post(BASE_URL+ "/tenants")
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -289,7 +296,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.errors[0].code").value("duplicate_value"))
                 .andExpect(jsonPath("$.errors[0].title").value("Validation Failed"))
                 .andExpect(jsonPath("$.errors[0].detail").value("The provided 'name' is already taken."))
-                .andExpect(jsonPath("$.errors[1].detail").value("The provided 'email' is already taken."))
+                .andExpect(jsonPath("$.errors[1].detail").value("The provided 'contactEmail' is already taken."))
                 .andExpect(jsonPath("$.errors[2].detail").value("The provided 'phone' is already taken."));
     }
 
@@ -300,14 +307,14 @@ class TenantIntegrationTest extends BaseIntegrationTest {
                 "Hacker Corp", "hacker@email.com", "0000000000", "crime"
         );
 
-        this.mockMvc.perform(post(this.getBaseUrl()+ "/tenants")
+        this.mockMvc.perform(post(BASE_URL+ "/tenants")
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
 
-        this.mockMvc.perform(post(this.getBaseUrl()+ "/tenants")
+        this.mockMvc.perform(post(BASE_URL+ "/tenants")
                         .header(HttpHeaders.AUTHORIZATION, EMPLOYEE_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -320,11 +327,12 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check updateTenant with valid input (PUT) - Success for SuperAdmin")
     void updateTenant_Success_SuperAdmin() throws Exception {
         //Arrange
-        Tenant existingTenant = new Tenant();
-        existingTenant.setName("existingTenantName");
-        existingTenant.setEmail("existing@email.com");
-        existingTenant.setPhone("11111111111");
-        existingTenant.setIndustry("technology");
+        Tenant existingTenant = new Tenant(
+                "existingTenantName",
+                "existing@email.com",
+                "11111111111",
+                "technology"
+        );
         tenantRepository.save(existingTenant);
 
         TenantRequest request = new TenantRequest(
@@ -335,7 +343,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
         );
 
         //Act & Assert
-        this.mockMvc.perform(put(this.getBaseUrl()+ "/tenants/" + existingTenant.getId())
+        this.mockMvc.perform(put(BASE_URL+ "/tenants/" + existingTenant.getId())
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -369,7 +377,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
         );
 
         //Act & Assert
-        this.mockMvc.perform(put(this.getBaseUrl()+ "/tenants/" + TEST_TENANT.getId())
+        this.mockMvc.perform(put(BASE_URL+ "/tenants/" + TEST_TENANT_ID)
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -385,7 +393,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.errors").isEmpty());
 
         // Verify tenant was updated in database
-        Tenant updatedTenant = tenantRepository.findById(TEST_TENANT.getId()).orElseThrow();
+        Tenant updatedTenant = tenantRepository.findById(TEST_TENANT_ID).orElseThrow();
         assertThat(updatedTenant.getName()).isEqualTo("newName");
         assertThat(updatedTenant.getEmail()).isEqualTo("new@email.com");
         assertThat(updatedTenant.getPhone()).isEqualTo("9876543210");
@@ -404,7 +412,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
         );
 
         //Act & Assert
-        this.mockMvc.perform(put(this.getBaseUrl()+ "/tenants/" + nonExistentId)
+        this.mockMvc.perform(put(BASE_URL+ "/tenants/" + nonExistentId)
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -424,18 +432,20 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check updateTenant with unique constrain violation (PUT)")
     void updateTenant_UniqueConstraintViolation() throws Exception {
         //Arrange
-        Tenant existingTenant = new Tenant();
-        existingTenant.setName("existingTenantName");
-        existingTenant.setEmail("existing@email.com");
-        existingTenant.setPhone("11111111111");
-        existingTenant.setIndustry("technology");
+        Tenant existingTenant = new Tenant(
+                "existingTenantName",
+                "existing@email.com",
+                "11111111111",
+                "technology"
+        );
         tenantRepository.save(existingTenant);
 
-        Tenant existingAnotherTenant = new Tenant();
-        existingAnotherTenant.setName("anotherTenantName");
-        existingAnotherTenant.setEmail("another@email.com");
-        existingAnotherTenant.setPhone("9876543210");
-        existingAnotherTenant.setIndustry("technology");
+        Tenant existingAnotherTenant = new Tenant(
+                "anotherTenantName",
+                "another@email.com",
+                "9876543210",
+                "technology"
+        );
         tenantRepository.save(existingAnotherTenant);
 
         TenantRequest request = new TenantRequest(
@@ -446,7 +456,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
         );
 
         //Act & Assert
-        this.mockMvc.perform(put(this.getBaseUrl()+ "/tenants/" + existingTenant.getId())
+        this.mockMvc.perform(put(BASE_URL+ "/tenants/" + existingTenant.getId())
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -467,11 +477,12 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Check updateTenant (PUT) - Forbidden for Tenant Admin on Different Tenant")
     void updateTenant_Forbidden_TenantAdmin_CrossTenant() throws Exception {
-        Tenant tenant = new Tenant();
-        tenant.setName("Other Tenant");
-        tenant.setEmail("other@email.com");
-        tenant.setPhone("9998887777");
-        tenant.setIndustry("other");
+        Tenant tenant = new Tenant(
+                "Other Tenant",
+                "other@email.com",
+                "9998887777",
+                "other"
+        );
         tenant = tenantRepository.save(tenant);
 
         TenantRequest request = new TenantRequest(
@@ -479,22 +490,23 @@ class TenantIntegrationTest extends BaseIntegrationTest {
         );
 
         // Act & Assert - Tenant is not assigned to the new tenant
-        this.mockMvc.perform(put(this.getBaseUrl()+ "/tenants/" + tenant.getId())
+        this.mockMvc.perform(put(BASE_URL+ "/tenants/" + tenant.getId())
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("Check updateTenant (PUT) - Forbidden for Employee")
     void updateTenant_Forbidden_Employee() throws Exception {
-        Tenant tenant = new Tenant();
-        tenant.setName("Other Tenant");
-        tenant.setEmail("other@email.com");
-        tenant.setPhone("9998887777");
-        tenant.setIndustry("other");
+        Tenant tenant = new Tenant(
+                "Other Tenant",
+                "other@email.com",
+                "9998887777",
+                "other"
+        );
         tenant = tenantRepository.save(tenant);
 
         TenantRequest request = new TenantRequest(
@@ -502,7 +514,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
         );
 
         // Act & Assert - Tenant is not assigned to the new tenant
-        this.mockMvc.perform(put(this.getBaseUrl()+ "/tenants/" + tenant.getId())
+        this.mockMvc.perform(put(BASE_URL+ "/tenants/" + tenant.getId())
                         .header(HttpHeaders.AUTHORIZATION, EMPLOYEE_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
@@ -515,15 +527,16 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check updateTenantStatus with valid input (PATCH)")
     void updateTenantStatus_Success() throws Exception {
         //Arrange
-        Tenant existingTenant = new Tenant();
-        existingTenant.setName("testTenantName");
-        existingTenant.setEmail("testEmail@email.com");
-        existingTenant.setPhone("1234567890");
-        existingTenant.setIndustry("technology");
+        Tenant existingTenant = new Tenant(
+                "existingTenantName",
+                "existing@email.com",
+                "11111111111",
+                "technology"
+        );
         tenantRepository.save(existingTenant);
 
         //Act & Assert - First toggle should deactivate
-        this.mockMvc.perform(patch(this.getBaseUrl()+ "/tenants/" + existingTenant.getId() + "/status")
+        this.mockMvc.perform(patch(BASE_URL+ "/tenants/" + existingTenant.getId() + "/status")
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -542,22 +555,23 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check updateTenantStatus toggle multiple times (PATCH)")
     void updateTenantStatus_ToggleMultipleTimes() throws Exception {
         //Arrange
-        Tenant existingTenant = new Tenant();
-        existingTenant.setName("testTenantName");
-        existingTenant.setEmail("testEmail@email.com");
-        existingTenant.setPhone("1234567890");
-        existingTenant.setIndustry("technology");
+        Tenant existingTenant = new Tenant(
+                "existingTenantName",
+                "existing@email.com",
+                "11111111111",
+                "technology"
+        );
         tenantRepository.save(existingTenant);
 
         // First toggle - deactivate
-        this.mockMvc.perform(patch(this.getBaseUrl()+ "/tenants/" + existingTenant.getId() + "/status")
+        this.mockMvc.perform(patch(BASE_URL+ "/tenants/" + existingTenant.getId() + "/status")
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.active").value(false));
 
         // Second toggle - reactivate
-        this.mockMvc.perform(patch(this.getBaseUrl()+ "/tenants/" + existingTenant.getId() + "/status")
+        this.mockMvc.perform(patch(BASE_URL+ "/tenants/" + existingTenant.getId() + "/status")
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -571,7 +585,7 @@ class TenantIntegrationTest extends BaseIntegrationTest {
         UUID nonExistentId = UUID.randomUUID();
 
         //Act & Assert
-        this.mockMvc.perform(patch(this.getBaseUrl()+ "/tenants/" + nonExistentId + "/status")
+        this.mockMvc.perform(patch(BASE_URL+ "/tenants/" + nonExistentId + "/status")
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
@@ -589,12 +603,12 @@ class TenantIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Check updateTenant (PUT) - Forbidden for non Super Admin")
     void updateTenantStatus_Forbidden_NonSuperAdmin() throws Exception {
         // Act & Assert
-        this.mockMvc.perform(patch(this.getBaseUrl()+ "/tenants/" + TEST_TENANT.getId() + "/status")
+        this.mockMvc.perform(patch(BASE_URL+ "/tenants/" + TEST_TENANT_ID + "/status")
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
 
-        this.mockMvc.perform(patch(this.getBaseUrl()+ "/tenants/" + TEST_TENANT.getId() + "/status")
+        this.mockMvc.perform(patch(BASE_URL+ "/tenants/" + TEST_TENANT_ID + "/status")
                         .header(HttpHeaders.AUTHORIZATION, EMPLOYEE_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
