@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantResponse;
-import org.droid.zero.multitenantaipayrollsystem.modules.tenant.dto.TenantStatus;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.service.TenantService;
 import org.droid.zero.multitenantaipayrollsystem.system.api.ResponseFactory;
 import org.springframework.http.HttpStatus;
@@ -66,10 +65,11 @@ public class TenantController {
     @PatchMapping("/{tenantId}/status")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseFactory<TenantStatus> updateTenantStatus(@PathVariable UUID tenantId) {
+    public ResponseFactory<?> updateTenantStatus(@PathVariable UUID tenantId) {
+        this.tenantService.toggleTenantStatus(tenantId);
         return ResponseFactory.success(
                 "Update Success",
-                new TenantStatus(tenantId,this.tenantService.toggleTenantStatus(tenantId))
+                null
         );
     }
 }

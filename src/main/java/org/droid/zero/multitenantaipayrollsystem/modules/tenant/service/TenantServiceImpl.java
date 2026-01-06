@@ -109,11 +109,11 @@ public class TenantServiceImpl extends BaseService implements TenantService {
 
     @Transactional
     @Override
-    public boolean toggleTenantStatus(UUID tenantId) {
+    public void toggleTenantStatus(UUID tenantId) {
         //Find the tenant to update, else throw an exception
         Tenant existingTenant = this.tenantRepository.findById(tenantId)
                 .orElseThrow(()-> new ObjectNotFoundException(TENANT, tenantId));
 
-        return existingTenant.toggleActiveStatus();
+        existingTenant.toggleActiveStatus();
     }
 }
