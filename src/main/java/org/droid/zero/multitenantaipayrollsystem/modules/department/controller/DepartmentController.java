@@ -1,5 +1,6 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.department.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.modules.department.dto.DepartmentRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.department.dto.DepartmentResponse;
@@ -33,7 +34,7 @@ public class DepartmentController {
     @ResponseStatus(CREATED)
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN', 'HR_OFFICER')")
     public ResponseFactory<DepartmentResponse> createDepartment(
-            @RequestBody DepartmentRequest departmentRequest
+            @Valid @RequestBody DepartmentRequest departmentRequest
     ) {
         return ResponseFactory.created(
                 "Create Success",
@@ -46,7 +47,7 @@ public class DepartmentController {
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN', 'HR_OFFICER')")
     public ResponseFactory<DepartmentResponse> updateDepartment(
             @PathVariable UUID departmentId,
-            @RequestBody DepartmentRequest departmentRequest
+            @Valid @RequestBody DepartmentRequest departmentRequest
     ) {
         return ResponseFactory.success(
                 "Update Success",
