@@ -33,7 +33,7 @@ public class DBDataInitializer {
 
     @EventListener(ApplicationReadyEvent.class)
     public void devStartup() {
-        TenantScopedEntityListener.runWithoutTenantChecks(() -> {
+        TenantScopedEntityListener.runAsRootTenant(() -> {
             log.info("✅ Dev application is ready");
             log.info("🚩 Starting Database cleanup...");
 

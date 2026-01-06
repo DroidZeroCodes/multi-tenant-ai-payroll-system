@@ -31,6 +31,16 @@ public class TenantScopedEntityListener {
         }
     }
 
+    public static void runAsRootTenant(Runnable action) {
+        UUID scopedTenantId = TenantContext.getTenantId();
+        TenantContext.setTenantId(TenantContext.getRootTenantId());
+        try {
+            runWithoutTenantChecks(action);
+        } finally {
+            TenantContext.setTenantId(scopedTenantId);
+        }
+    }
+
     @PrePersist
     @PreUpdate
     @PreRemove
