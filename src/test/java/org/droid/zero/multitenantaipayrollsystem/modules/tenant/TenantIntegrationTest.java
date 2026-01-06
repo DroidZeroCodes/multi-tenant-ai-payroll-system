@@ -542,8 +542,6 @@ class TenantIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Update Success"))
-                .andExpect(jsonPath("$.data.id").value(existingTenant.getId().toString()))
-                .andExpect(jsonPath("$.data.active").value(false))
                 .andExpect(jsonPath("$.errors").isEmpty());
 
         // Verify status was updated in the database
@@ -567,15 +565,13 @@ class TenantIntegrationTest extends BaseIntegrationTest {
         this.mockMvc.perform(patch(BASE_URL+ "/tenants/" + existingTenant.getId() + "/status")
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.active").value(false));
+                .andExpect(status().isOk());
 
         // Second toggle - reactivate
         this.mockMvc.perform(patch(BASE_URL+ "/tenants/" + existingTenant.getId() + "/status")
                         .header(HttpHeaders.AUTHORIZATION, SUPER_ADMIN_TOKEN)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.active").value(true));
+                .andExpect(status().isOk());
     }
 
     @Test

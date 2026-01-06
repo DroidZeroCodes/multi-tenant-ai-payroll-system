@@ -3,6 +3,7 @@ package org.droid.zero.multitenantaipayrollsystem.test.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.model.UserCredentials;
+import org.droid.zero.multitenantaipayrollsystem.modules.department.repository.DepartmentRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.listener.TenantScopedEntityListener;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
@@ -67,6 +68,7 @@ public class BaseIntegrationTest {
             @Autowired MockMvc staticMockMvc,
             @Autowired TenantRepository tenantRepository,
             @Autowired UserRepository userRepository,
+            @Autowired DepartmentRepository departmentRepository,
             @Autowired PasswordEncoder passwordEncoder,
             @Value("${api.endpoint.base-url}") String baseUrl
     ) {
@@ -76,9 +78,11 @@ public class BaseIntegrationTest {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
 
-        TenantScopedEntityListener.runWithoutTenantChecks(() -> {
+        TenantScopedEntityListener.runAsRootTenant(() -> {
+            departmentRepository.deleteAll();
             userRepository.deleteAll();
             tenantRepository.deleteAll();
+
             Tenant tenant = new Tenant(
                     "Default Tenant",
                     "tenant.default@email.com",
@@ -89,7 +93,6 @@ public class BaseIntegrationTest {
             UUID tenantId = tenant.getId();
 
             TEST_TENANT_ID = tenant.getId();
-            TenantContext.setTenantId(tenantId);
 
             User superAdmin = createSuperAdminUser(tenantId);
             User tenantAdmin = createTenantAdminUser(tenantId);
@@ -107,7 +110,6 @@ public class BaseIntegrationTest {
         });
 
         RateLimitCheckFilter.enable();
-        TenantContext.clear();
     }
 
     protected String getToken(UUID tenantId, String email) throws Exception {

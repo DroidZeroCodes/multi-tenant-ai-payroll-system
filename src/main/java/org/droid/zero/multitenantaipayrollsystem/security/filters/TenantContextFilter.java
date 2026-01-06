@@ -34,24 +34,24 @@ public class TenantContextFilter extends OncePerRequestFilter {
         boolean isAuthLoginEndpoint = request.getRequestURI().equals(baseUrl + "/auth/login");
         String tenantId = "";
 
-        // 1. Try to extract tenantId from the header if from the login endpoint, else extract it from the JWT
-        if (isAuthLoginEndpoint) {
-             tenantId = HeaderUtils.extractTenantId(request);
-        } else {
-            String jwt = HeaderUtils.extractJwt(request);
-
-            if (jwt != null && !jwt.isBlank()) {
-                tenantId = tokenService.extractClaim(jwt, claims -> claims.get("tenantId", String.class));
-            }
-        }
-
         try {
-            if (tenantId != null && !tenantId.isBlank()) {
-                try {
-                    TenantContext.setTenantId(UUID.fromString(tenantId));
-                } catch (Exception e) {
-                    throw new IllegalArgumentException("Invalid tenant Id value: " + tenantId);
+            // 1. Try to extract tenantId from the header if from the login endpoint, else extract it from the JWT
+            if (isAuthLoginEndpoint) {
+                tenantId = HeaderUtils.extractTenantId(request);
+            } else {
+                String jwt = HeaderUtils.extractJwt(request);
+
+                if (jwt != null && !jwt.isBlank()) {
+                    try {
+                        tenantId = tokenService.extractClaim(jwt, claims -> claims.get("tenantId", String.class));
+                    } catch (Exception e) {
+                        throw new IllegalArgumentException("Malformed JWT token: " + jwt);
+                    }
                 }
+            }
+
+            if (tenantId != null && !tenantId.isBlank()) {
+                TenantContext.setTenantId(UUID.fromString(tenantId));
             }
 
             // 2. Continue the chain (This goes to Spring Security next)

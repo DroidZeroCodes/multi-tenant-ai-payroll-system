@@ -283,35 +283,16 @@ class TenantServiceTest extends BaseUnitTest {
     }
 
     @Test
-    void toggleTenantStatus_ShouldSaveAndReturnStatus_whenRequestIsValid() {
+    void toggleTenantStatus_ShouldSave_whenRequestIsValid() {
         //Arrange
         when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
 
         //Act
-        boolean updatedStatus = tenantService.toggleTenantStatus(tenantId);
+        tenantService.toggleTenantStatus(tenantId);
 
         //Assert
-        assertFalse(updatedStatus); // Toggled from true to false
-
         verify(tenantRepository, times(1)).findById(tenantId);
         verifyNoMoreInteractions(tenantRepository);
-    }
-
-    @Test
-    void toggleTenantStatus_ShouldToggleMultipleTimes() {
-        //Arrange
-        when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
-
-        //Act - First toggle
-        boolean firstToggle = tenantService.toggleTenantStatus(tenantId);
-        // Simulate the second toggle by changing the tenant's state
-        boolean secondToggle = tenantService.toggleTenantStatus(tenantId);
-
-        //Assert
-        assertFalse(firstToggle); // true -> false
-        assertTrue(secondToggle); // false -> true
-
-        verify(tenantRepository, times(2)).findById(tenantId);
     }
 
     @Test

@@ -14,5 +14,5 @@ public interface TenantService {
 
     TenantResponse update(TenantRequest request, UUID tenantId);
 
-    boolean toggleTenantStatus(UUID tenantId);
+    void toggleTenantStatus(UUID tenantId);
 }

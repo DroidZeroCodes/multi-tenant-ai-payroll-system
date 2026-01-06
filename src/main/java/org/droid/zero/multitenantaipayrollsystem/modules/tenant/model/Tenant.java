@@ -48,8 +48,7 @@ public class Tenant extends BaseModel {
         if (industry != null && !industry.isBlank())  this.industry = industry;
     }
 
-    public boolean toggleActiveStatus() {
+    public void toggleActiveStatus() {
         this.active = !this.active;
-        return this.active;
     }
 }
