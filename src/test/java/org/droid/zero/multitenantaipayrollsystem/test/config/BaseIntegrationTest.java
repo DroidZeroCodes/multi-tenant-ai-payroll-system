@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.model.UserCredentials;
 import org.droid.zero.multitenantaipayrollsystem.modules.department.repository.DepartmentRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.position.repository.PositionRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.listener.TenantScopedEntityListener;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
@@ -69,6 +70,7 @@ public class BaseIntegrationTest {
             @Autowired TenantRepository tenantRepository,
             @Autowired UserRepository userRepository,
             @Autowired DepartmentRepository departmentRepository,
+            @Autowired PositionRepository positionRepository,
             @Autowired PasswordEncoder passwordEncoder,
             @Value("${api.endpoint.base-url}") String baseUrl
     ) {
@@ -79,6 +81,7 @@ public class BaseIntegrationTest {
         this.userRepository = userRepository;
 
         TenantScopedEntityListener.runAsRootTenant(() -> {
+            positionRepository.deleteAll();
             departmentRepository.deleteAll();
             userRepository.deleteAll();
             tenantRepository.deleteAll();

@@ -1,4 +1,4 @@
-package org.droid.zero.multitenantaipayrollsystem.modules.department.model;
+package org.droid.zero.multitenantaipayrollsystem.modules.position.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,35 +16,32 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "departments")
-public class Department extends TenantScopedEntity {
+@Table(name = "positions")
+public class Position extends TenantScopedEntity {
 
-    @NotBlank(message = "name is required")
-    private String name;
+    @NotBlank(message = "title is required")
+    private String title;
 
     @NotBlank(message = "description is required")
     private String description;
 
+    @NotBlank(message = "level is required")
+    private String level;
+
     @Column(name = "is_active")
     private boolean active = false;
 
-//    @OneToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(nullable=false)
-//    private Employee manager;
-
-    public Department(
-            String name,
-            String description,
-            UUID tenantId
-    ) {
-        this.name = name;
+    public Position(String title, String description, String level, UUID tenantId) {
+        this.title = title;
         this.description = description;
+        this.level = level;
         this.tenantId = tenantId;
     }
 
-    public void updateDepartmentDetails(String name, String description) {
-        if (name != null && !name.isBlank()) this.name = name;
+    public void updatePositionDetails(String title, String description, String level) {
+        if (title != null && !title.isBlank()) this.title = title;
         if (description != null && !description.isBlank()) this.description = description;
+        if (level != null && !level.isBlank()) this.level = level;
     }
 
     public void toggleActiveStatus(){
