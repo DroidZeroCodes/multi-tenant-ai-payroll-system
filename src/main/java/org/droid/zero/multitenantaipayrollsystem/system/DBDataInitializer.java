@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.model.UserCredentials;
 import org.droid.zero.multitenantaipayrollsystem.modules.department.repository.DepartmentRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.position.repository.PositionRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.listener.TenantScopedEntityListener;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
@@ -29,6 +30,7 @@ public class DBDataInitializer {
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
+    private final PositionRepository positionRepository;
     private final PasswordEncoder passwordEncoder;
 
     @EventListener(ApplicationReadyEvent.class)
@@ -37,6 +39,7 @@ public class DBDataInitializer {
             log.info("✅ Dev application is ready");
             log.info("🚩 Starting Database cleanup...");
 
+            positionRepository.deleteAll();
             departmentRepository.deleteAll();
             userRepository.deleteAll();
             tenantRepository.deleteAll();
