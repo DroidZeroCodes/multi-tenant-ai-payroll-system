@@ -3,6 +3,7 @@ package org.droid.zero.multitenantaipayrollsystem.modules.department.model;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
+@Table(name = "departments")
 public class Department extends TenantScopedEntity {
 
     @NotBlank(message = "name is required")
