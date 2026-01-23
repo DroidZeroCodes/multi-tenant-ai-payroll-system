@@ -1,5 +1,6 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.employee.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.constant.EMPLOYEE_STATUS;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.constant.EMPLOYMENT_TYPE;
@@ -18,6 +19,7 @@ public record EmployeeRequest(
         String lastName,
 
         @NotBlank(message = "email is required")
+        @Email(message = "email must be a valid email address")
         String email,
 
         @NotBlank(message = "phone is required")
