@@ -59,10 +59,15 @@ public class Employee extends TenantScopedEntity{
     @Enumerated(EnumType.STRING)
     private EMPLOYEE_STATUS status = EMPLOYEE_STATUS.INACTIVE;
 
-    @Column(name = "user_id")
+    @Column(
+            name = "user_id",
+            nullable = false,
+            unique = true,
+            updatable = false
+    )
     protected UUID userId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
             name="user_id",
             nullable=false,
@@ -109,7 +114,8 @@ public class Employee extends TenantScopedEntity{
             EMPLOYMENT_TYPE employmentType,
             EMPLOYEE_STATUS status,
             UUID departmentId,
-            UUID positionId
+            UUID positionId,
+            UUID tenantId
     ) {
         this.userId = userId;
         this.status = status;
@@ -125,6 +131,7 @@ public class Employee extends TenantScopedEntity{
         this.employeeCode = employeeCode;
         this.departmentId = departmentId;
         this.positionId = positionId;
+        this.tenantId = tenantId;
     }
 
     public void assignEmployeeCode(String employeeCode) {
