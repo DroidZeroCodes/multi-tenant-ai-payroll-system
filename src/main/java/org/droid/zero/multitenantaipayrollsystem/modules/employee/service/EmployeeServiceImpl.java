@@ -6,11 +6,12 @@ import org.droid.zero.multitenantaipayrollsystem.modules.employee.dto.EmployeeRe
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.dto.EmployeeResponse;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.mapper.EmployeeMapper;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.model.Employee;
-import org.droid.zero.multitenantaipayrollsystem.modules.employee.model.EmployeeCodeGenerator;
+import org.droid.zero.multitenantaipayrollsystem.modules.employee.util.EmployeeCodeGenerator;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.repository.EmployeeRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.position.repository.PositionRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.repository.UserRepository;
 import org.droid.zero.multitenantaipayrollsystem.system.BaseService;
+import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.system.util.FieldDuplicateValidator;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,6 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
         //Fetch the requested employee (or fail with 404)
         Employee requestedEmployee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ObjectNotFoundException(EMPLOYEE, employeeId));
-
 
         return employeeMapper.toResponse(requestedEmployee);
     }
@@ -71,7 +71,8 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
                 request.employmentType(),
                 request.status(),
                 request.departmentId(),
-                request.positionId()
+                request.positionId(),
+                TenantContext.getTenantId()
         );
 
         //Create the new employee record in the database
