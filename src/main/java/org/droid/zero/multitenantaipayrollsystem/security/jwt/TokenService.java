@@ -48,7 +48,7 @@ public class TokenService {
                 .subject(username)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(JWT_EXPIRATION_MILLIS, ChronoUnit.MILLIS)))
-                .claim("userId", ((User)(authentication.getPrincipal())).getId())
+                .claim("employeeId", ((User)(authentication.getPrincipal())).getEmployee().getId())
                 .claim("tenantId", tenantId)
                 .claim("roles", roles)
                 .signWith(getSigningKey())
