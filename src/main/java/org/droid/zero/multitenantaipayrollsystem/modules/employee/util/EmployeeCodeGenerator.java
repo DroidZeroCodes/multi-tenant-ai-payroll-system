@@ -1,4 +1,4 @@
-package org.droid.zero.multitenantaipayrollsystem.modules.employee.model;
+package org.droid.zero.multitenantaipayrollsystem.modules.employee.util;
 
 import lombok.RequiredArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.repository.EmployeeRepository;
