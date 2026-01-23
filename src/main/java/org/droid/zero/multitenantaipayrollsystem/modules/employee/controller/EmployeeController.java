@@ -56,7 +56,7 @@ public class EmployeeController {
 
     @PatchMapping("/{employeeId}/employment")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN', 'HR_OFFICER') or #employeeId == @userContext.employeeId")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN', 'HR_OFFICER')")
     public ResponseFactory<EmployeeResponse> updateEmployeeEmployment(@PathVariable UUID employeeId, @Valid @RequestBody EmploymentUpdateRequest updatedEmployee) {
         return ResponseFactory.success(
                 "Update Success",
@@ -66,7 +66,7 @@ public class EmployeeController {
 
     @PatchMapping("/{employeeId}/status")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN', 'HR_OFFICER') or #employeeId == @userContext.employeeId")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN', 'HR_OFFICER')")
     public ResponseFactory<EmployeeResponse> updateEmployeeStatus(@PathVariable UUID employeeId, @RequestBody EMPLOYEE_STATUS status) {
         return ResponseFactory.success(
                 "Update Success",
@@ -76,7 +76,7 @@ public class EmployeeController {
 
     @PatchMapping("/{employeeId}/position")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN', 'HR_OFFICER') or #employeeId == @userContext.employeeId")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN', 'HR_OFFICER')")
     public ResponseFactory<EmployeeResponse> updateEmployeePosition(@PathVariable UUID employeeId, @RequestBody UUID positionId) {
         return ResponseFactory.success(
                 "Update Success",
@@ -86,7 +86,7 @@ public class EmployeeController {
 
     @PatchMapping("/{employeeId}/department")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN', 'HR_OFFICER') or #employeeId == @userContext.employeeId")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN', 'HR_OFFICER')")
     public ResponseFactory<EmployeeResponse> updateEmployeeDepartment(@PathVariable UUID employeeId, @RequestBody UUID departmentId) {
         return ResponseFactory.success(
                 "Update Success",
