@@ -2,8 +2,11 @@ package org.droid.zero.multitenantaipayrollsystem.modules.employee.service;
 
 import lombok.RequiredArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.modules.department.repository.DepartmentRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.employee.constant.EMPLOYEE_STATUS;
+import org.droid.zero.multitenantaipayrollsystem.modules.employee.dto.EmployeeInfoUpdateRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.dto.EmployeeRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.dto.EmployeeResponse;
+import org.droid.zero.multitenantaipayrollsystem.modules.employee.dto.EmploymentUpdateRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.mapper.EmployeeMapper;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.model.Employee;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.util.EmployeeCodeGenerator;
@@ -79,5 +82,69 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
         return employeeMapper.toResponse(employeeRepository.save(employee));
     }
 
+    @Override
+    public EmployeeResponse updateInfo(EmployeeInfoUpdateRequest updatedEmployee, UUID employeeId) {
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ObjectNotFoundException(EMPLOYEE, employeeId, "employeeId"));
+
+        employee.updateEmployeeInfo(
+                updatedEmployee.firstName(),
+                updatedEmployee.lastName(),
+                updatedEmployee.email(),
+                updatedEmployee.phone(),
+                updatedEmployee.dob(),
+                updatedEmployee.address(),
+                updatedEmployee.gender()
+        );
+        return employeeMapper.toResponse(employee);
+    }
+
+    @Override
+    public EmployeeResponse updateEmployment(EmploymentUpdateRequest updatedEmployee, UUID employeeId) {
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ObjectNotFoundException(EMPLOYEE, employeeId, "employeeId"));
+
+        employee.updateEmploymentDetails(
+                updatedEmployee.joiningDate(),
+                updatedEmployee.employmentType()
+        );
+        return employeeMapper.toResponse(employee);
+    }
+
+    @Transactional
+    @Override
+    public EmployeeResponse updateEmployeeStatus(UUID employeeId, EMPLOYEE_STATUS status) {
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ObjectNotFoundException(EMPLOYEE, employeeId, "employeeId"));
+
+        employee.changeEmployeeStatus(status);
+        return employeeMapper.toResponse(employee);
+    }
+
+    @Transactional
+    @Override
+    public EmployeeResponse updateEmployeePosition(UUID employeeId, UUID positionId) {
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ObjectNotFoundException(EMPLOYEE, employeeId, "employeeId"));
+
+        if (positionId != null && !positionRepository.existsById(positionId)) throw new ObjectNotFoundException(POSITION, positionId, "positionId");
+
+        employee.assignPosition(positionId);
+        return employeeMapper.toResponse(employee);
+    }
+
+    @Transactional
+    @Override
+    public EmployeeResponse updateEmployeeDepartment(UUID employeeId, UUID departmentId) {
+        Employee employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> new ObjectNotFoundException(EMPLOYEE, employeeId, "employeeId"));
+
+        if (departmentId != null && !departmentRepository.existsById(departmentId)) throw new ObjectNotFoundException(DEPARTMENT, departmentId, "departmentId");
+
+        employee.assignDepartment(departmentId);
+        return employeeMapper.toResponse(employee);
+    }
+
 }
+
 
