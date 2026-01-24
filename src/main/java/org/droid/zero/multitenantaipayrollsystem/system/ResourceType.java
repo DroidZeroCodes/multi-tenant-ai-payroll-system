@@ -6,4 +6,5 @@ public enum ResourceType {
     DEPARTMENT,
     POSITION,
     EMPLOYEE,
+    SALARY_STRUCTURE
 }
