@@ -82,6 +82,7 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
         return employeeMapper.toResponse(employeeRepository.save(employee));
     }
 
+    @Transactional
     @Override
     public EmployeeResponse updateInfo(EmployeeInfoUpdateRequest updatedEmployee, UUID employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
@@ -99,6 +100,7 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
         return employeeMapper.toResponse(employee);
     }
 
+    @Transactional
     @Override
     public EmployeeResponse updateEmployment(EmploymentUpdateRequest updatedEmployee, UUID employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
