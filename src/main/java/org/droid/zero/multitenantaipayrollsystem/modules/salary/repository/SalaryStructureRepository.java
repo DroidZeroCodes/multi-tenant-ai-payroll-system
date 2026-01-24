@@ -8,6 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface SalaryStructureRepository extends JpaRepository<SalaryStructure, UUID> {
-
-    boolean existsByNameIgnoreCase(String title);
+    boolean existsByNameIgnoreCase(String name);
 }

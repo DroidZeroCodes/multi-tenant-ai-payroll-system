@@ -19,6 +19,6 @@ public record SalaryStructureRequest(
         @DecimalMin(value = "0.01", message = "base salary must be greater than 0")
         Double baseSalary,
 
-        @NotBlank(message = "effectiveDate is required")
+        @NotNull(message = "effectiveDate is required")
         Date effectiveDate
 ){}
