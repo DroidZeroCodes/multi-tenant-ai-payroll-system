@@ -2,8 +2,10 @@ package org.droid.zero.multitenantaipayrollsystem.modules.salary.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.droid.zero.multitenantaipayrollsystem.modules.salary.dto.SalaryAllowanceResponse;
 import org.droid.zero.multitenantaipayrollsystem.modules.salary.dto.SalaryStructureRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.salary.dto.SalaryStructureResponse;
+import org.droid.zero.multitenantaipayrollsystem.modules.salary.service.SalaryAllowanceService;
 import org.droid.zero.multitenantaipayrollsystem.modules.salary.service.SalaryStructureService;
 import org.droid.zero.multitenantaipayrollsystem.system.api.ResponseFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,10 +17,11 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
-@RequestMapping("${api.endpoint.base-url}/salaries")
+@RequestMapping("${api.endpoint.base-url}/salary-structures")
 @RequiredArgsConstructor
 public class SalaryController {
     private final SalaryStructureService salaryStructureService;
+    private final SalaryAllowanceService salaryAllowanceService;
 
     @GetMapping("/{salaryId}")
     @ResponseStatus(OK)
@@ -64,6 +67,17 @@ public class SalaryController {
                 "Update Success",
                 null
         );
+    }
+
+    @GetMapping("/{salaryId}/allowances/{allowanceId}")
+    @ResponseStatus(OK)
+    public ResponseFactory<SalaryAllowanceResponse> findSalaryAllowance(
+            @PathVariable UUID salaryId,
+            @PathVariable UUID allowanceId
+    ) {
+        return ResponseFactory.success(
+                "Find One Success",
+                salaryAllowanceService.findBySalaryIdAndAllowanceId(salaryId, allowanceId));
     }
 
 }
