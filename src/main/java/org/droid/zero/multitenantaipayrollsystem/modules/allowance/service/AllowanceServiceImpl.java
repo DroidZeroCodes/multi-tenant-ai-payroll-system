@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-import static org.droid.zero.multitenantaipayrollsystem.system.ResourceType.SALARY_STRUCTURE;
+import static org.droid.zero.multitenantaipayrollsystem.system.ResourceType.ALLOWANCE;
 
 
 @Service
@@ -27,9 +27,9 @@ public class AllowanceServiceImpl extends BaseService implements AllowanceServic
 
     @Transactional
     @Override
-    public AllowanceResponse findById(UUID salaryId) {
-        Allowance requestedAllowance = this.allowanceRepository.findById(salaryId)
-                .orElseThrow(()-> new ObjectNotFoundException(SALARY_STRUCTURE, salaryId));
+    public AllowanceResponse findById(UUID allowanceId) {
+        Allowance requestedAllowance = this.allowanceRepository.findById(allowanceId )
+                .orElseThrow(()-> new ObjectNotFoundException(ALLOWANCE, allowanceId ));
 
         return this.allowanceMapper.toResponse(requestedAllowance);
     }
@@ -39,7 +39,7 @@ public class AllowanceServiceImpl extends BaseService implements AllowanceServic
     public AllowanceResponse save(AllowanceRequest request) {
         new FieldDuplicateValidator()
                 .addField(allowanceRepository.existsByNameIgnoreCase(request.name()), "name")
-                .validate(SALARY_STRUCTURE);
+                .validate(ALLOWANCE);
 
         Allowance newAllowance = new Allowance(
                 request.name(),
@@ -56,12 +56,12 @@ public class AllowanceServiceImpl extends BaseService implements AllowanceServic
 
     @Transactional
     @Override
-    public AllowanceResponse update(AllowanceRequest request, UUID salaryId) {
-        //Find the Salary from the repository
-        Allowance existingAllowance = this.allowanceRepository.findById(salaryId)
-                .orElseThrow(()-> new ObjectNotFoundException(SALARY_STRUCTURE, salaryId));
+    public AllowanceResponse update(AllowanceRequest request, UUID allowanceId ) {
+        //Find the Allowance  from the repository
+        Allowance existingAllowance = this.allowanceRepository.findById(allowanceId )
+                .orElseThrow(()-> new ObjectNotFoundException(ALLOWANCE, allowanceId ));
 
-        //Update the salary
+        //Update the allowance 
         existingAllowance.updateAllowanceDetails(
                 request.name(),
                 request.description(),
