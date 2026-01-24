@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.security.jwt.TokenService;
 import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
+import org.droid.zero.multitenantaipayrollsystem.system.context.UserContext;
 import org.droid.zero.multitenantaipayrollsystem.system.util.HeaderUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +19,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class TenantContextFilter extends OncePerRequestFilter {
+public class SessionContextFilter extends OncePerRequestFilter {
 
     private final TokenService tokenService;
     @Value("${api.endpoint.base-url}")
@@ -44,6 +45,10 @@ public class TenantContextFilter extends OncePerRequestFilter {
                 if (jwt != null && !jwt.isBlank()) {
                     try {
                         tenantId = tokenService.extractClaim(jwt, claims -> claims.get("tenantId", String.class));
+
+                        String employeeId = tokenService.extractClaim(jwt, claims -> claims.get("employeeId", String.class));
+                        if (employeeId.isBlank()) logger.warn("Employee ID is blank in JWT token: " + jwt);
+                        UserContext.setEmployeeId(employeeId);
                     } catch (Exception e) {
                         throw new IllegalArgumentException("Malformed JWT token: " + jwt);
                     }

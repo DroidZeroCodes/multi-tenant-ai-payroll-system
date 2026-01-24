@@ -7,16 +7,20 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.model.UserCredentials;
+import org.droid.zero.multitenantaipayrollsystem.modules.employee.model.Employee;
+import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.TenantScopedEntity;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.constant.UserRole;
 import org.droid.zero.multitenantaipayrollsystem.system.BaseModel;
-import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.TenantScopedEntity;
 import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.droid.zero.multitenantaipayrollsystem.modules.user.constant.UserRole.EMPLOYEE;
@@ -48,6 +52,9 @@ public class User extends BaseModel implements UserDetails {
 
     @OneToOne(mappedBy = "user", optional = false, cascade = CascadeType.ALL)
     private UserCredentials userCredentials;
+
+    @OneToOne(mappedBy = "user")
+    private Employee employee;
 
     @OneToMany(mappedBy = "user",  fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private final Set<UserTenantRole> userTenantRoles = new HashSet<>();
