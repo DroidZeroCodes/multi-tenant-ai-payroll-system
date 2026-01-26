@@ -47,8 +47,11 @@ public class SessionContextFilter extends OncePerRequestFilter {
                         tenantId = tokenService.extractClaim(jwt, claims -> claims.get("tenantId", String.class));
 
                         String employeeId = tokenService.extractClaim(jwt, claims -> claims.get("employeeId", String.class));
-                        if (employeeId.isBlank()) logger.warn("Employee ID is blank in JWT token: " + jwt);
-                        UserContext.setEmployeeId(UUID.fromString(employeeId));
+                        if (!employeeId.isBlank()) {
+                            UserContext.setEmployeeId(UUID.fromString(employeeId));
+                        } else {
+                            logger.warn("Employee ID is blank in JWT token: " + jwt);
+                        }
                     } catch (Exception e) {
                         throw new IllegalArgumentException("Malformed JWT token: " + jwt);
                     }
