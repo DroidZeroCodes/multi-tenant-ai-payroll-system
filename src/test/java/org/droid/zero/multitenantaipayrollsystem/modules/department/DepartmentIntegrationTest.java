@@ -1,8 +1,9 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.department;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
 import org.droid.zero.multitenantaipayrollsystem.modules.department.dto.DepartmentRequest;
+import org.droid.zero.multitenantaipayrollsystem.modules.department.model.Department;
+import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
 import org.droid.zero.multitenantaipayrollsystem.test.config.BaseIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,13 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("Integration tests for Department API")
 class DepartmentIntegrationTest extends BaseIntegrationTest {
@@ -26,7 +28,6 @@ class DepartmentIntegrationTest extends BaseIntegrationTest {
     private ObjectMapper objectMapper;
 
     private DepartmentRequest validDepartmentRequest;
-    private String departmentId;
 
     @BeforeEach
     void setUp() {
@@ -34,6 +35,7 @@ class DepartmentIntegrationTest extends BaseIntegrationTest {
                 "Engineering",
                 "Engineering Department"
         );
+        TenantContext.setTenantId(TEST_TENANT_ID);
     }
 
     @Test
@@ -41,7 +43,7 @@ class DepartmentIntegrationTest extends BaseIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void createDepartment_shouldSucceed() throws Exception {
         // Act & Assert
-        MvcResult result = mockMvc.perform(post(BASE_URL + "/departments")
+        mockMvc.perform(post(BASE_URL + "/departments")
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validDepartmentRequest)))
@@ -50,12 +52,7 @@ class DepartmentIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Create Success"))
                 .andExpect(jsonPath("$.data").isNotEmpty())
                 .andExpect(jsonPath("$.data.name").value(validDepartmentRequest.name()))
-                .andExpect(jsonPath("$.data.description").value(validDepartmentRequest.description()))
-                .andReturn();
-
-        // Extract department ID for subsequent tests
-        String response = result.getResponse().getContentAsString();
-        departmentId = JsonPath.parse(response).read("$.data.id", String.class);
+                .andExpect(jsonPath("$.data.description").value(validDepartmentRequest.description()));
     }
 
     @Test
@@ -73,15 +70,15 @@ class DepartmentIntegrationTest extends BaseIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void getDepartmentById_shouldSucceed() throws Exception {
         // Arrange - Create a department first
-        createTestDepartment();
+        Department testDepartment = createTestDepartment(validDepartmentRequest);
 
         // Act & Assert
-        mockMvc.perform(get(BASE_URL + "/departments/" + departmentId)
+        mockMvc.perform(get(BASE_URL + "/departments/" + testDepartment.getId())
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Find One Success"))
-                .andExpect(jsonPath("$.data.id").value(departmentId))
+                .andExpect(jsonPath("$.data.id").value(testDepartment.getId().toString()))
                 .andExpect(jsonPath("$.data.name").value(validDepartmentRequest.name()));
     }
 
@@ -99,8 +96,8 @@ class DepartmentIntegrationTest extends BaseIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void updateDepartment_shouldSucceed() throws Exception {
         // Arrange - Create a department first
-        createTestDepartment();
-        
+        Department testDepartment = createTestDepartment(validDepartmentRequest);
+
         // Prepare update request
         DepartmentRequest updateRequest = new DepartmentRequest(
                 "Updated Engineering",
@@ -108,7 +105,7 @@ class DepartmentIntegrationTest extends BaseIntegrationTest {
         );
 
         // Act & Assert
-        mockMvc.perform(put(BASE_URL + "/departments/" + departmentId)
+        mockMvc.perform(put(BASE_URL + "/departments/" + testDepartment.getId())
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
@@ -124,17 +121,17 @@ class DepartmentIntegrationTest extends BaseIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void toggleDepartmentStatus_shouldSucceed() throws Exception {
         // Arrange - Create a department first
-        createTestDepartment();
+        Department testDepartment = createTestDepartment(validDepartmentRequest);
 
         // Act & Assert - Toggle status
-        mockMvc.perform(patch(BASE_URL + "/departments/" + departmentId + "/status")
+        mockMvc.perform(patch(BASE_URL + "/departments/" + testDepartment.getId() + "/status")
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Update Success"));
 
         // Verify the status was toggled by checking the active status
-        mockMvc.perform(get(BASE_URL + "/departments/" + departmentId)
+        mockMvc.perform(get(BASE_URL + "/departments/" + testDepartment.getId())
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.active").isBoolean())
@@ -161,17 +158,12 @@ class DepartmentIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.errors", hasSize(2))); // Expecting 2 validation errors (name and description)
     }
 
-    /**
-     * Helper method to create a test department and store its ID
-     */
-    private void createTestDepartment() throws Exception {
-        MvcResult result = mockMvc.perform(post(BASE_URL + "/departments")
-                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validDepartmentRequest)))
-                .andReturn();
-
-        String response = result.getResponse().getContentAsString();
-        departmentId = JsonPath.parse(response).read("$.data.id", String.class);
+    private Department createTestDepartment(DepartmentRequest request) {
+        Department department = new Department(
+                request.name(),
+                request.description(),
+                TEST_TENANT_ID
+        );
+        return departmentRepository.save(department);
     }
 }

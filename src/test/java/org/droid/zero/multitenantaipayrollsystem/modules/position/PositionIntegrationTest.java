@@ -1,8 +1,9 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.position;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
 import org.droid.zero.multitenantaipayrollsystem.modules.position.dto.PositionRequest;
+import org.droid.zero.multitenantaipayrollsystem.modules.position.model.Position;
+import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
 import org.droid.zero.multitenantaipayrollsystem.test.config.BaseIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.UUID;
 
@@ -28,7 +28,6 @@ class PositionIntegrationTest extends BaseIntegrationTest {
     private ObjectMapper objectMapper;
 
     private PositionRequest validPositionRequest;
-    private String positionId;
 
     @BeforeEach
     void setUp() {
@@ -37,6 +36,8 @@ class PositionIntegrationTest extends BaseIntegrationTest {
                 "Position description",
                 "Manager"
         );
+
+        TenantContext.setTenantId(TEST_TENANT_ID);
     }
 
     @Test
@@ -44,7 +45,7 @@ class PositionIntegrationTest extends BaseIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void createPosition_shouldSucceed() throws Exception {
         // Act & Assert
-        MvcResult result = mockMvc.perform(post(BASE_URL + "/positions")
+        mockMvc.perform(post(BASE_URL + "/positions")
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validPositionRequest)))
@@ -54,12 +55,7 @@ class PositionIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.data").isNotEmpty())
                 .andExpect(jsonPath("$.data.title").value(validPositionRequest.title()))
                 .andExpect(jsonPath("$.data.description").value(validPositionRequest.description()))
-                .andExpect(jsonPath("$.data.level").value(validPositionRequest.level()))
-                .andReturn();
-
-        // Extract position ID for subsequent tests
-        String response = result.getResponse().getContentAsString();
-        positionId = JsonPath.parse(response).read("$.data.id", String.class);
+                .andExpect(jsonPath("$.data.level").value(validPositionRequest.level()));
     }
 
     @Test
@@ -77,15 +73,15 @@ class PositionIntegrationTest extends BaseIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void getPositionById_shouldSucceed() throws Exception {
         // Arrange - Create a position first
-        createTestPosition();
+        Position testPosition = createTestPosition(validPositionRequest);
 
         // Act & Assert
-        mockMvc.perform(get(BASE_URL + "/positions/" + positionId)
+        mockMvc.perform(get(BASE_URL + "/positions/" + testPosition.getId())
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Find One Success"))
-                .andExpect(jsonPath("$.data.id").value(positionId))
+                .andExpect(jsonPath("$.data.id").value(testPosition.getId().toString()))
                 .andExpect(jsonPath("$.data.title").value(validPositionRequest.title()))
                 .andExpect(jsonPath("$.data.description").value(validPositionRequest.description()))
                 .andExpect(jsonPath("$.data.level").value(validPositionRequest.level()));
@@ -105,8 +101,8 @@ class PositionIntegrationTest extends BaseIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void updatePosition_shouldSucceed() throws Exception {
         // Arrange - Create a position first
-        createTestPosition();
-        
+        Position testPosition = createTestPosition(validPositionRequest);
+
         // Prepare update request
         PositionRequest updateRequest = new PositionRequest(
                 "Updated Position Title",
@@ -115,7 +111,7 @@ class PositionIntegrationTest extends BaseIntegrationTest {
         );
 
         // Act & Assert
-        mockMvc.perform(put(BASE_URL + "/positions/" + positionId)
+        mockMvc.perform(put(BASE_URL + "/positions/" + testPosition.getId())
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
@@ -132,17 +128,17 @@ class PositionIntegrationTest extends BaseIntegrationTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void togglePositionStatus_shouldSucceed() throws Exception {
         // Arrange - Create a position first
-        createTestPosition();
+        Position testPosition = createTestPosition(validPositionRequest);
 
         // Act & Assert - Toggle status
-        mockMvc.perform(patch(BASE_URL + "/positions/" + positionId + "/status")
+        mockMvc.perform(patch(BASE_URL + "/positions/" + testPosition.getId() + "/status")
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("Update Success"));
 
         // Verify the status was toggled by checking the active status
-        mockMvc.perform(get(BASE_URL + "/positions/" + positionId)
+        mockMvc.perform(get(BASE_URL + "/positions/" + testPosition.getId())
                         .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.active").isBoolean())
@@ -170,17 +166,13 @@ class PositionIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.errors", hasSize(3))); // Expecting 3 validation errors
     }
 
-    /**
-     * Helper method to create a test position and store its ID
-     */
-    private void createTestPosition() throws Exception {
-        MvcResult result = mockMvc.perform(post(BASE_URL + "/positions")
-                        .header(HttpHeaders.AUTHORIZATION, TENANT_ADMIN_TOKEN)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(validPositionRequest)))
-                .andReturn();
-
-        String response = result.getResponse().getContentAsString();
-        positionId = JsonPath.parse(response).read("$.data.id", String.class);
+    private Position createTestPosition(PositionRequest request) {
+        Position position = new Position(
+                request.title(),
+                request.description(),
+                request.level(),
+                TEST_TENANT_ID
+        );
+        return positionRepository.save(position);
     }
 }

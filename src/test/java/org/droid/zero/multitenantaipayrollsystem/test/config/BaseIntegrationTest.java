@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import org.droid.zero.multitenantaipayrollsystem.modules.allowance.repository.AllowanceRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.model.UserCredentials;
+import org.droid.zero.multitenantaipayrollsystem.modules.department.model.Department;
 import org.droid.zero.multitenantaipayrollsystem.modules.department.repository.DepartmentRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.repository.EmployeeRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.position.model.Position;
 import org.droid.zero.multitenantaipayrollsystem.modules.position.repository.PositionRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.salary.repository.EmployeeSalaryRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.salary.repository.SalaryAllowanceRepository;
@@ -67,7 +69,10 @@ public class BaseIntegrationTest {
     protected TenantExecutor tenantExecutor;
 
     private PasswordEncoder passwordEncoder;
-    private UserRepository userRepository;
+
+    protected UserRepository userRepository;
+    protected DepartmentRepository departmentRepository;
+    protected PositionRepository positionRepository;
 
     @BeforeEach
     protected void setupTokens(
@@ -88,7 +93,10 @@ public class BaseIntegrationTest {
 
         this.mockMvc = staticMockMvc;
         this.passwordEncoder = passwordEncoder;
+
         this.userRepository = userRepository;
+        this.departmentRepository = departmentRepository;
+        this.positionRepository = positionRepository;
 
         TenantScopedEntityListener.runAsRootTenant(() -> {
             employeeSalaryRepository.deleteAll();
@@ -232,5 +240,24 @@ public class BaseIntegrationTest {
                 ),
                 TEST_TENANT_ID
         ));
+    }
+
+    protected Department createTestDepartment() {
+        Department department = new Department(
+                "Test Department" + UUID.randomUUID(),
+                "Test Description",
+                TEST_TENANT_ID
+        );
+        return departmentRepository.save(department);
+    }
+
+    protected Position createTestPosition() {
+        Position position = new Position(
+                "Test Position" + UUID.randomUUID(),
+                "Test Description",
+                "Senior",
+                TEST_TENANT_ID
+        );
+        return positionRepository.save(position);
     }
 }

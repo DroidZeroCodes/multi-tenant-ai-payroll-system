@@ -202,7 +202,7 @@ public class DBDataInitializer {
 
             log.info("➡️ Seeding Employee Data...");
             Employee employee1 = new Employee(
-                    employeeUser.getId(),
+                    employeeUser,
                     "EMP001",
                     "Amar",
                     "Tariq",
@@ -214,13 +214,13 @@ public class DBDataInitializer {
                     LocalDate.of(2023, 1, 15),
                     EMPLOYMENT_TYPE.FULL_TIME,
                     EMPLOYEE_STATUS.ACTIVE,
-                    engineeringDept.getId(),
-                    seniorDev.getId(),
                     tenantId
             );
+            employee1.assignPosition(seniorDev);
+            employee1.assignDepartment(engineeringDept);
             
             Employee employee2 = new Employee(
-                    hrUser.getId(),
+                    hrUser,
                     "EMP002",
                     "Jude",
                     "Luanne",
@@ -232,10 +232,10 @@ public class DBDataInitializer {
                     LocalDate.of(2022, 6, 1),
                     EMPLOYMENT_TYPE.FULL_TIME,
                     EMPLOYEE_STATUS.ACTIVE,
-                    hrDept.getId(),
-                    hrManager.getId(),
                     tenantId
             );
+            employee2.assignPosition(hrManager);
+            employee2.assignDepartment(hrDept);
             
             employeeRepository.save(employee1);
             employeeRepository.save(employee2);
