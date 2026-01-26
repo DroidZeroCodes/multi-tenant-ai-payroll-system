@@ -249,7 +249,7 @@ public class SalaryController {
      * @return ResponseFactory with HTTP 201 status containing the created allowance details
      * @throws ValidationException if validation rules are violated
      */
-    @PostMapping("/{salaryId}/allowances}")
+    @PostMapping("/{salaryId}/allowances")
     @ResponseStatus(CREATED)
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN', 'PAYROLL_OFFICER')")
     public ResponseFactory<SalaryAllowanceResponse> createSalaryAllowance(

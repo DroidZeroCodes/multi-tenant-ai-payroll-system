@@ -20,7 +20,10 @@ import java.util.UUID;
 @Table(
         name = "salary_allowances",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"salary_structure_id", "allowance_id", "tenant_id"})
+                @UniqueConstraint(
+                        name = "uc_salary_allowance_tenant",
+                        columnNames = {"salary_structure_id", "allowance_id", "tenant_id"}
+                )
         }
 )
 public class SalaryAllowance extends TenantScopedEntity {

@@ -85,7 +85,7 @@ public class EmployeeSalaryServiceImpl extends BaseService implements EmployeeSa
             }
         }
 
-        EmployeeSalary requestedEmployeeSalary = this.employeeSalaryRepository.findFirst(
+        EmployeeSalary requestedEmployeeSalary = this.employeeSalaryRepository.findOne(
                 Specification.allOf(
                         EmployeeSalarySpecs.hasEmployeeId(employeeId),
                         EmployeeSalarySpecs.effectiveOn(date)
