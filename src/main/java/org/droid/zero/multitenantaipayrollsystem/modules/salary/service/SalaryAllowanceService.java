@@ -12,7 +12,7 @@ public interface SalaryAllowanceService {
 
     SalaryAllowanceResponse findBySalaryIdAndAllowanceId(UUID salaryId, UUID allowanceId);
 
-    SalaryAllowanceResponse save(SalaryAllowanceRequest salaryAllowanceRequest);
+    SalaryAllowanceResponse save(UUID salaryId, SalaryAllowanceRequest salaryAllowanceRequest);
 
     SalaryAllowanceResponse updateEffectiveDates(UUID salaryAllowanceId, SalaryAllowanceDatesUpdateRequest request);
 
