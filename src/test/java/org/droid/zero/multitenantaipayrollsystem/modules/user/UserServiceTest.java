@@ -35,8 +35,6 @@ import static org.droid.zero.multitenantaipayrollsystem.modules.user.constant.Us
 import static org.droid.zero.multitenantaipayrollsystem.system.ResourceType.USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -88,13 +86,6 @@ class UserServiceTest extends BaseUnitTest {
         );
         user.setId(UUID.randomUUID());
         userId = user.getId();
-
-//        UserCredentials credentials = new UserCredentials(
-//                "test@example.com",
-//                "hashedPassword",
-//                Set.of(EMPLOYEE),
-//                tenant
-//        );
 
         userRegistrationRequest = new UserRegistrationRequest(
                 "Test",

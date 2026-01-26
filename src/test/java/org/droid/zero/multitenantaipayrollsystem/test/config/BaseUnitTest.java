@@ -14,23 +14,21 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.droid.zero.multitenantaipayrollsystem.modules.user.constant.UserRole.SUPER_ADMIN;
-
 @ExtendWith(MockitoExtension.class)
 @ActiveProfiles(value = "test")
 public class BaseUnitTest {
 
     @BeforeAll
     public static void beforeAll() {
-        setupSecurityContext(SUPER_ADMIN);
+        setupSecurityContext();
     }
 
-    protected static void setupSecurityContext(UserRole ...role) {
+    protected static void setupSecurityContext() {
         User user = new User(
                 "firstName",
                 "lastName",
                 "contactEmail@contactEmail.com",
-                Set.of(role),
+                Set.of(new UserRole[]{UserRole.SUPER_ADMIN}),
                 new UserCredentials(),
                 UUID.randomUUID()
         );

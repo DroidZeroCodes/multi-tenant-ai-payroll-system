@@ -2,9 +2,14 @@ package org.droid.zero.multitenantaipayrollsystem.test.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
+import org.droid.zero.multitenantaipayrollsystem.modules.allowance.repository.AllowanceRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.model.UserCredentials;
 import org.droid.zero.multitenantaipayrollsystem.modules.department.repository.DepartmentRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.employee.repository.EmployeeRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.position.repository.PositionRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.salary.repository.EmployeeSalaryRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.salary.repository.SalaryAllowanceRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.salary.repository.SalaryStructureRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.listener.TenantScopedEntityListener;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
@@ -71,6 +76,11 @@ public class BaseIntegrationTest {
             @Autowired UserRepository userRepository,
             @Autowired DepartmentRepository departmentRepository,
             @Autowired PositionRepository positionRepository,
+            @Autowired EmployeeRepository employeeRepository,
+            @Autowired AllowanceRepository allowanceRepository,
+            @Autowired SalaryStructureRepository salaryStructureRepository,
+            @Autowired SalaryAllowanceRepository salaryAllowanceRepository,
+            @Autowired EmployeeSalaryRepository employeeSalaryRepository,
             @Autowired PasswordEncoder passwordEncoder,
             @Value("${api.endpoint.base-url}") String baseUrl
     ) {
@@ -81,6 +91,11 @@ public class BaseIntegrationTest {
         this.userRepository = userRepository;
 
         TenantScopedEntityListener.runAsRootTenant(() -> {
+            employeeSalaryRepository.deleteAll();
+            salaryAllowanceRepository.deleteAll();
+            salaryStructureRepository.deleteAll();
+            allowanceRepository.deleteAll();
+            employeeRepository.deleteAll();
             positionRepository.deleteAll();
             departmentRepository.deleteAll();
             userRepository.deleteAll();
@@ -202,5 +217,20 @@ public class BaseIntegrationTest {
         TenantContext.setTenantId(TEST_TENANT_ID);
 
         return saved;
+    }
+
+    protected User createRandomTestUser() {
+        TenantContext.setTenantId(TEST_TENANT_ID);
+        return userRepository.save(new User(
+                "Default Employee",
+                "Default Employee",
+                "employee.default" + UUID.randomUUID() + "@email.com",
+                Set.of(EMPLOYEE),
+                new UserCredentials(
+                        "employee.default" + UUID.randomUUID() + "@email.com",
+                        this.passwordEncoder.encode("password")
+                ),
+                TEST_TENANT_ID
+        ));
     }
 }

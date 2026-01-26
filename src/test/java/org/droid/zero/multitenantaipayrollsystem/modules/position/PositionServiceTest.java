@@ -26,8 +26,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowableOfType;
 import static org.droid.zero.multitenantaipayrollsystem.system.ResourceType.POSITION;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,10 +34,9 @@ class PositionServiceTest extends BaseUnitTest {
     @Mock
     private PositionRepository positionRepository;
 
-    private final PositionMapper positionMapper = Mappers.getMapper(PositionMapper.class);;
+    private final PositionMapper positionMapper = Mappers.getMapper(PositionMapper.class);
     private final UUID positionId = UUID.randomUUID();
 
-    private UUID tenantId;
     private Position position;
     private PositionRequest positionRequest;
 
@@ -51,7 +48,7 @@ class PositionServiceTest extends BaseUnitTest {
 
         Tenant tenant = new Tenant();
         tenant.setId(UUID.randomUUID());
-        tenantId = tenant.getId();
+        UUID tenantId = tenant.getId();
         TenantContext.setTenantId(tenant.getId());
 
         position = new Position(
