@@ -5,16 +5,14 @@ import org.droid.zero.multitenantaipayrollsystem.modules.employee.repository.Emp
 import org.hibernate.HibernateException;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @RequiredArgsConstructor
 public class EmployeeCodeGenerator {
 
-    public static String generate(Date joiningDate, EmployeeRepository employeeRepository) throws HibernateException {
+    public static String generate(LocalDate joiningDate, EmployeeRepository employeeRepository) throws HibernateException {
 
         long count = employeeRepository.countByJoiningDate(joiningDate);
-        LocalDate jDate = joiningDate.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
 
-        return "EMP-" + jDate.getYear() + String.format("%04d", count + 1) + jDate.getDayOfMonth() + jDate.getMonthValue();
+        return "EMP-" + joiningDate.getYear() + String.format("%04d", count + 1) + joiningDate.getDayOfMonth() + joiningDate.getMonthValue();
     }
 }

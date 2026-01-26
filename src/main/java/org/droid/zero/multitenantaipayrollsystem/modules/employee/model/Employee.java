@@ -13,7 +13,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.TenantScop
 import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -42,7 +42,7 @@ public class Employee extends TenantScopedEntity{
     private String phone;
 
     @NotBlank(message = "date of birth is required")
-    private Date dob;
+    private LocalDate dob;
 
     @NotBlank(message = "address is required")
     private String address;
@@ -51,7 +51,7 @@ public class Employee extends TenantScopedEntity{
     private String gender;
 
     @NotBlank(message = "joining date is required")
-    private Date joiningDate;
+    private LocalDate joiningDate;
 
     @Enumerated(EnumType.STRING)
     private EMPLOYMENT_TYPE employmentType = EMPLOYMENT_TYPE.FULL_TIME;
@@ -109,8 +109,8 @@ public class Employee extends TenantScopedEntity{
             String phone,
             String address,
             String gender,
-            Date dob,
-            Date joiningDate,
+            LocalDate dob,
+            LocalDate joiningDate,
             EMPLOYMENT_TYPE employmentType,
             EMPLOYEE_STATUS status,
             UUID departmentId,
@@ -145,7 +145,7 @@ public class Employee extends TenantScopedEntity{
             String lastName,
             String email,
             String phone,
-            Date dob,
+            LocalDate dob,
             String address,
             String gender
     ) {
@@ -159,7 +159,7 @@ public class Employee extends TenantScopedEntity{
     }
 
     public void updateEmploymentDetails(
-            Date joiningDate,
+            LocalDate joiningDate,
             EMPLOYMENT_TYPE employmentType
     ){
         if (joiningDate != null) this.joiningDate = joiningDate;

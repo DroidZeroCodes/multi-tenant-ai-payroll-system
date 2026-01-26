@@ -15,7 +15,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.position.repository.Pos
 import org.droid.zero.multitenantaipayrollsystem.modules.user.repository.UserRepository;
 import org.droid.zero.multitenantaipayrollsystem.system.BaseService;
 import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ResourceNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.system.util.FieldDuplicateValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +40,7 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
     public EmployeeResponse findById(UUID employeeId) {
         //Fetch the requested employee (or fail with 404)
         Employee requestedEmployee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new ObjectNotFoundException(EMPLOYEE, employeeId));
+                .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE, employeeId));
 
         return employeeMapper.toResponse(requestedEmployee);
     }
@@ -48,9 +48,9 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
     @Transactional
     @Override
     public EmployeeResponse save(EmployeeRequest request) {
-        if (!userRepository.existsById(request.userId())) throw new ObjectNotFoundException(USER, request.userId(), "userId");
-        if (request.positionId() != null && !positionRepository.existsById(request.positionId())) throw new ObjectNotFoundException(POSITION, request.positionId(), "positionId");
-        if (request.departmentId() != null && !departmentRepository.existsById(request.departmentId())) throw new ObjectNotFoundException(DEPARTMENT, request.departmentId(), "departmentId");
+        if (!userRepository.existsById(request.userId())) throw new ResourceNotFoundException(USER, request.userId(), "userId");
+        if (request.positionId() != null && !positionRepository.existsById(request.positionId())) throw new ResourceNotFoundException(POSITION, request.positionId(), "positionId");
+        if (request.departmentId() != null && !departmentRepository.existsById(request.departmentId())) throw new ResourceNotFoundException(DEPARTMENT, request.departmentId(), "departmentId");
 
         String employeeCode = EmployeeCodeGenerator.generate(request.joiningDate(), employeeRepository);
 
@@ -86,7 +86,7 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
     @Override
     public EmployeeResponse updateInfo(EmployeeInfoUpdateRequest updatedEmployee, UUID employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new ObjectNotFoundException(EMPLOYEE, employeeId, "employeeId"));
+                .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE, employeeId, "employeeId"));
 
         employee.updateEmployeeInfo(
                 updatedEmployee.firstName(),
@@ -104,7 +104,7 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
     @Override
     public EmployeeResponse updateEmployment(EmploymentUpdateRequest updatedEmployee, UUID employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new ObjectNotFoundException(EMPLOYEE, employeeId, "employeeId"));
+                .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE, employeeId, "employeeId"));
 
         employee.updateEmploymentDetails(
                 updatedEmployee.joiningDate(),
@@ -117,7 +117,7 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
     @Override
     public EmployeeResponse updateEmployeeStatus(UUID employeeId, EMPLOYEE_STATUS status) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new ObjectNotFoundException(EMPLOYEE, employeeId, "employeeId"));
+                .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE, employeeId, "employeeId"));
 
         employee.changeEmployeeStatus(status);
         return employeeMapper.toResponse(employee);
@@ -127,9 +127,9 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
     @Override
     public EmployeeResponse updateEmployeePosition(UUID employeeId, UUID positionId) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new ObjectNotFoundException(EMPLOYEE, employeeId, "employeeId"));
+                .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE, employeeId, "employeeId"));
 
-        if (positionId != null && !positionRepository.existsById(positionId)) throw new ObjectNotFoundException(POSITION, positionId, "positionId");
+        if (positionId != null && !positionRepository.existsById(positionId)) throw new ResourceNotFoundException(POSITION, positionId, "positionId");
 
         employee.assignPosition(positionId);
         return employeeMapper.toResponse(employee);
@@ -139,9 +139,9 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
     @Override
     public EmployeeResponse updateEmployeeDepartment(UUID employeeId, UUID departmentId) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new ObjectNotFoundException(EMPLOYEE, employeeId, "employeeId"));
+                .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE, employeeId, "employeeId"));
 
-        if (departmentId != null && !departmentRepository.existsById(departmentId)) throw new ObjectNotFoundException(DEPARTMENT, departmentId, "departmentId");
+        if (departmentId != null && !departmentRepository.existsById(departmentId)) throw new ResourceNotFoundException(DEPARTMENT, departmentId, "departmentId");
 
         employee.assignDepartment(departmentId);
         return employeeMapper.toResponse(employee);

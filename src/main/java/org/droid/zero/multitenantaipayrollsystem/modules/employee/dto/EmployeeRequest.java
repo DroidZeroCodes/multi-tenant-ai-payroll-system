@@ -2,14 +2,15 @@ package org.droid.zero.multitenantaipayrollsystem.modules.employee.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.constant.EMPLOYEE_STATUS;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.constant.EMPLOYMENT_TYPE;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 public record EmployeeRequest(
-        @NotBlank(message = "userId is required")
+        @NotNull(message = "userId is required")
         UUID userId,
 
         @NotBlank(message = "firstName is required")
@@ -26,7 +27,7 @@ public record EmployeeRequest(
         String phone,
 
         @NotBlank(message = "date of birth is required")
-        Date dob,
+        LocalDate dob,
 
         @NotBlank(message = "address is required")
         String address,
@@ -35,7 +36,7 @@ public record EmployeeRequest(
         String gender,
 
         @NotBlank(message = "joining date is required")
-        Date joiningDate,
+        LocalDate joiningDate,
 
         EMPLOYMENT_TYPE employmentType,
 
