@@ -42,15 +42,15 @@ public class EmployeeSalary extends TenantScopedEntity {
     )
     private Employee employee;
 
-    @NotNull(message = "effective date is required")
+    @NotNull(message = "Effective date is required")
     @Column(name = "effective_date", nullable = false)
     private LocalDate effectiveDate;
 
-    @NotNull(message = "end date is required")
+    @NotNull(message = "End date is required")
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    @NotNull(message = "assigned by is required")
+    @NotNull(message = "Assigned by is required")
     @Column(name = "assigned_by", nullable = false)
     private String assignedBy;
 

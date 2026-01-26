@@ -7,10 +7,10 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public record SalaryAllowanceRequest(
-        @NotNull(message = "allowance ID is required")
+        @NotNull(message = "Allowance ID is required")
         UUID allowanceId,
-        @NotBlank(message = "effective date is required")
+        @NotBlank(message = "Effective date is required")
         LocalDate effectiveDate,
-        @NotBlank(message = "expiry date is required")
+        @NotBlank(message = "Expiry date is required")
         LocalDate expiryDate
 ){}

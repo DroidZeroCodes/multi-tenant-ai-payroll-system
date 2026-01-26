@@ -1,6 +1,7 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.employee.service;
 
 import lombok.RequiredArgsConstructor;
+import org.droid.zero.multitenantaipayrollsystem.modules.department.model.Department;
 import org.droid.zero.multitenantaipayrollsystem.modules.department.repository.DepartmentRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.constant.EMPLOYEE_STATUS;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.dto.EmployeeInfoUpdateRequest;
@@ -9,14 +10,16 @@ import org.droid.zero.multitenantaipayrollsystem.modules.employee.dto.EmployeeRe
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.dto.EmploymentUpdateRequest;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.mapper.EmployeeMapper;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.model.Employee;
-import org.droid.zero.multitenantaipayrollsystem.modules.employee.util.EmployeeCodeGenerator;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.repository.EmployeeRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.employee.util.EmployeeCodeGenerator;
+import org.droid.zero.multitenantaipayrollsystem.modules.position.model.Position;
 import org.droid.zero.multitenantaipayrollsystem.modules.position.repository.PositionRepository;
+import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.repository.UserRepository;
 import org.droid.zero.multitenantaipayrollsystem.system.BaseService;
 import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.BusinessRuleException;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ResourceNotFoundException;
-import org.droid.zero.multitenantaipayrollsystem.system.util.FieldDuplicateValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,20 +51,18 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
     @Transactional
     @Override
     public EmployeeResponse save(EmployeeRequest request) {
-        if (!userRepository.existsById(request.userId())) throw new ResourceNotFoundException(USER, request.userId());
-        if (request.positionId() != null && !positionRepository.existsById(request.positionId())) throw new ResourceNotFoundException(POSITION, request.positionId());
-        if (request.departmentId() != null && !departmentRepository.existsById(request.departmentId())) throw new ResourceNotFoundException(DEPARTMENT, request.departmentId());
+        User user = userRepository.findById(request.userId())
+                .orElseThrow(() -> new ResourceNotFoundException(USER, request.userId()));
+
+        if (user.getEmployee() != null){
+            throw new BusinessRuleException("User already has an employee");
+        }
 
         String employeeCode = EmployeeCodeGenerator.generate(request.joiningDate(), employeeRepository);
 
-        //Validate if the provided arguments does not violate unique constraints
-        new FieldDuplicateValidator()
-                .addField(employeeRepository.existsByEmployeeCode(employeeCode), "employeeCode")
-                .validate(EMPLOYEE);
-
         //Convert request to an entity to be persisted and set the tenant
         Employee employee = new Employee(
-                request.userId(),
+                user,
                 employeeCode,
                 request.firstName(),
                 request.lastName(),
@@ -73,10 +74,20 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
                 request.joiningDate(),
                 request.employmentType(),
                 request.status(),
-                request.departmentId(),
-                request.positionId(),
                 TenantContext.getTenantId()
         );
+
+        if(request.positionId() != null) {
+            Position position = positionRepository.findById(request.positionId())
+                    .orElseThrow(() -> new ResourceNotFoundException(POSITION, request.positionId()));
+            employee.assignPosition(position);
+        }
+
+        if(request.departmentId() != null) {
+            Department department = departmentRepository.findById(request.departmentId())
+                    .orElseThrow(() -> new ResourceNotFoundException(DEPARTMENT, request.departmentId()));
+            employee.assignDepartment(department);
+        }
 
         //Create the new employee record in the database
         return employeeMapper.toResponse(employeeRepository.save(employee));
@@ -129,9 +140,13 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE, employeeId));
 
-        if (positionId != null && !positionRepository.existsById(positionId)) throw new ResourceNotFoundException(POSITION, positionId);
+        Position position = null;
+        if (positionId != null) {
+            position = positionRepository.findById(positionId)
+                    .orElseThrow(() -> new ResourceNotFoundException(POSITION, positionId));
+        }
 
-        employee.assignPosition(positionId);
+        employee.assignPosition(position);
         return employeeMapper.toResponse(employee);
     }
 
@@ -141,12 +156,19 @@ public class EmployeeServiceImpl extends BaseService implements EmployeeService 
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new ResourceNotFoundException(EMPLOYEE, employeeId));
 
-        if (departmentId != null && !departmentRepository.existsById(departmentId)) throw new ResourceNotFoundException(DEPARTMENT, departmentId);
+        Department department = null;
+        if (departmentId != null) {
+            department = departmentRepository.findById(departmentId)
+                    .orElseThrow(() -> new ResourceNotFoundException(DEPARTMENT, departmentId));
+        }
 
-        employee.assignDepartment(departmentId);
+        employee.assignDepartment(department);
         return employeeMapper.toResponse(employee);
     }
 
 }
+
+
+
 
 

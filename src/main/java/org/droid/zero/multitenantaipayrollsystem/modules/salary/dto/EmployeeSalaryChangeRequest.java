@@ -7,10 +7,10 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public record EmployeeSalaryChangeRequest(
-        @NotNull(message = "salary structure ID is required")
+        @NotNull(message = "Salary structure ID is required")
         UUID salaryStructureId,
-        @NotBlank(message = "effective date is required")
+        @NotBlank(message = "Effective date is required")
         LocalDate effectiveDate,
-        @NotBlank(message = "old salary end date is required")
+        @NotBlank(message = "Old salary end date is required")
         LocalDate oldSalaryEndDate
 ){}

@@ -22,20 +22,22 @@ import java.util.UUID;
 @Table(name = "salary_structures")
 public class SalaryStructure extends TenantScopedEntity {
 
-    @NotBlank(message = "name is required")
+    @NotBlank(message = "Name is required")
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @NotBlank(message = "description is required")
+    @NotBlank(message = "Description is required")
+    @Column(name = "description", nullable = false)
     private String description;
 
-    @NotNull(message = "base salary is required")
-    @DecimalMax(value = "999999.99", message = "base salary must be less than or equal to 999999.99")
-    @DecimalMin(value = "0.01", message = "base salary must be greater than 0")
-    @Column(name = "base_salary")
+    @NotNull(message = "Base salary is required")
+    @DecimalMax(value = "999999.99", message = "Base salary must be less than or equal to 999999.99")
+    @DecimalMin(value = "0.01", message = "Base salary must be greater than 0")
+    @Column(name = "base_salary", nullable = false)
     private Double baseSalary;
 
-    @NotNull(message = "effective date is required")
-    @Column(name = "effective_date")
+    @NotNull(message = "Effective date is required")
+    @Column(name = "effective_date", nullable = false)
     private LocalDate effectiveDate;
 
     @Column(name = "is_active")
