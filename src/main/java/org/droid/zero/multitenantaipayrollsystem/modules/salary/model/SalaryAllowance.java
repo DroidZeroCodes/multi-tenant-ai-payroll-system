@@ -10,7 +10,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
 import org.droid.zero.multitenantaipayrollsystem.system.context.UserContext;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -25,59 +25,51 @@ import java.util.UUID;
 )
 public class SalaryAllowance extends TenantScopedEntity {
 
-    @Column(name = "salary_structure_id", nullable = false, updatable = false)
-    private UUID salaryStructureId;
-
     @ManyToOne(optional = false)
     @JoinColumn(
             name = "salary_structure_id",
             nullable = false,
-            insertable = false,
             updatable = false
     )
     private SalaryStructure salaryStructure;
-
-    @Column(name = "allowance_id", nullable = false, updatable = false)
-    private UUID allowanceId;
 
     @ManyToOne(optional = false)
     @JoinColumn(
             name = "allowance_id",
             nullable = false,
-            insertable = false,
             updatable = false
     )
     private Allowance allowance;
 
     @NotNull(message = "effective date is required")
     @Column(name = "effective_date", nullable = false)
-    private Date effectiveDate;
+    private LocalDate effectiveDate;
 
     @NotNull(message = "expiry date is required")
     @Column(name = "expiry_date", nullable = false)
-    private Date expiryDate;
+    private LocalDate expiryDate;
 
     @NotNull(message = "assigned by is required")
     @Column(name = "assigned_by", nullable = false)
     private String assignedBy;
 
     public SalaryAllowance(
-            UUID salaryStructureId,
-            UUID allowanceId,
-            Date effectiveDate,
-            Date expiryDate,
+            SalaryStructure salaryStructure,
+            Allowance allowance,
+            LocalDate effectiveDate,
+            LocalDate expiryDate,
             UUID tenantId
     ) {
-        this.salaryStructureId = salaryStructureId;
-        this.allowanceId = allowanceId;
+        this.salaryStructure = salaryStructure;
+        this.allowance = allowance;
         this.effectiveDate = effectiveDate;
         this.expiryDate = expiryDate;
         this.tenantId = tenantId;
     }
 
     public void updateEffectiveDates(
-            Date effectiveDate,
-            Date expiryDate
+            LocalDate effectiveDate,
+            LocalDate expiryDate
     ){
         this.effectiveDate = effectiveDate;
         this.expiryDate = expiryDate;
@@ -86,7 +78,7 @@ public class SalaryAllowance extends TenantScopedEntity {
     @PrePersist
     @PreUpdate
     private void validateDatesAndAssignAssignedBy() {
-        if (effectiveDate.after(expiryDate))
+        if (effectiveDate.isAfter(expiryDate))
             throw new IllegalArgumentException("Effective date cannot be after expiry date");
 
         User user = UserContext.getCurrentUser();

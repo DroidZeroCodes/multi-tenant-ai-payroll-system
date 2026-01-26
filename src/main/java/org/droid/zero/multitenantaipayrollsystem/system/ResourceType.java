@@ -8,5 +8,6 @@ public enum ResourceType {
     EMPLOYEE,
     SALARY_STRUCTURE,
     ALLOWANCE,
-    SALARY_ALLOWANCE
+    SALARY_ALLOWANCE,
+    EMPLOYEE_SALARY
 }

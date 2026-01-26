@@ -4,8 +4,10 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import javax.validation.Valid;
 import javax.validation.constraints.DecimalMin;
-import java.sql.Date;
+import java.time.LocalDate;
+import java.util.Set;
 
 public record SalaryStructureRequest(
         @NotBlank(message = "name is required")
@@ -20,5 +22,8 @@ public record SalaryStructureRequest(
         Double baseSalary,
 
         @NotNull(message = "effectiveDate is required")
-        Date effectiveDate
+        LocalDate effectiveDate,
+
+        @Valid
+        Set<SalaryAllowanceRequest> allowances
 ){}

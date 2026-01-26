@@ -2,12 +2,12 @@ package org.droid.zero.multitenantaipayrollsystem.modules.salary.dto;
 
 import jakarta.validation.constraints.NotNull;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 public record SalaryAllowanceDatesUpdateRequest(
         @NotNull(message = "effective date is required")
-        Date effectiveDate,
+        LocalDate effectiveDate,
         @NotNull(message = "expiry date is required")
-        Date expiryDate
+        LocalDate expiryDate
 ) {
 }
