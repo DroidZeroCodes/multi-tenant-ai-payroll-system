@@ -8,6 +8,8 @@ import java.util.UUID;
 
 public record EmployeeResponse(
         UUID id,
+        UUID positionId,
+        UUID departmentId,
         String employeeCode,
         String firstName,
         String lastName,
@@ -18,7 +20,5 @@ public record EmployeeResponse(
         LocalDate dob,
         LocalDate joiningDate,
         EMPLOYMENT_TYPE employmentType,
-        EMPLOYEE_STATUS status,
-        String positionTitle,
-        String departmentName
+        EMPLOYEE_STATUS status
 ) {}

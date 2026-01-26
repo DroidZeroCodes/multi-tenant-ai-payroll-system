@@ -5,32 +5,28 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 public record EmployeeInfoUpdateRequest(
-        @NotNull(message = "userId is required")
-        UUID userId,
-
-        @NotBlank(message = "firstName is required")
+        @NotBlank(message = "First name is required")
         String firstName,
 
-        @NotBlank(message = "lastName is required")
+        @NotBlank(message = "Last Name is required")
         String lastName,
 
-        @NotBlank(message = "email is required")
-        @Email(message = "email must be a valid email address")
+        @NotBlank(message = "Email is required")
+        @Email(message = "Email must be a valid email address")
         String email,
 
-        @NotBlank(message = "phone is required")
+        @NotBlank(message = "Phone is required")
         String phone,
 
-        @NotNull(message = "date of birth is required")
+        @NotNull(message = "Date of birth is required")
         LocalDate dob,
 
-        @NotBlank(message = "address is required")
+        @NotBlank(message = "Address is required")
         String address,
 
-        @NotBlank(message = "gender is required")
+        @NotBlank(message = "Gender is required")
         String gender
 ) {
 }

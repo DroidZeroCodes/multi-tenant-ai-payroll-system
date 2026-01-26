@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 
 public record EmploymentUpdateRequest(
-        @NotNull(message = "joining date is required")
+        @NotNull(message = "Joining date is required")
         LocalDate joiningDate,
         EMPLOYMENT_TYPE employmentType
 ) {}
