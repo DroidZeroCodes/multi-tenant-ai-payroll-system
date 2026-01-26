@@ -13,7 +13,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.user.service.UserServic
 import org.droid.zero.multitenantaipayrollsystem.system.TenantExecutor;
 import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.DuplicateResourceException;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ResourceNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.test.config.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -131,7 +131,7 @@ class UserServiceTest extends BaseUnitTest {
 
         // Act & Assert
         assertThatThrownBy(() -> userService.findById(userId))
-                .isInstanceOf(ObjectNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Could not find USER with ID '" + userId + "'.");
         
         verify(userRepository, times(1)).findByIdAndUserTenantRoles_TenantId(userId, TenantContext.getTenantId());

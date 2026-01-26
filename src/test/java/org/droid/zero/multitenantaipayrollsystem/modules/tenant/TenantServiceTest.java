@@ -8,7 +8,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.repository.TenantRepository;
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.service.TenantServiceImpl;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.DuplicateResourceException;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ResourceNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.test.config.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -96,7 +96,7 @@ class TenantServiceTest extends BaseUnitTest {
 
         //Assert
         assertThat(thrown)
-                .isInstanceOf(ObjectNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Could not find TENANT with ID '" + tenantId + "'.");
 
         verify(tenantRepository, times(1)).findById(tenantId);
@@ -242,7 +242,7 @@ class TenantServiceTest extends BaseUnitTest {
 
         //Assert
         assertThat(thrown)
-                .isInstanceOf(ObjectNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Could not find TENANT with ID '" + tenantId + "'.");
 
         verify(tenantRepository, times(1)).findById(tenantId);
@@ -305,7 +305,7 @@ class TenantServiceTest extends BaseUnitTest {
 
         //Assert
         assertThat(thrown)
-                .isInstanceOf(ObjectNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Could not find TENANT with ID '" + tenantId + "'.");
 
         verify(tenantRepository, times(1)).findById(tenantId);

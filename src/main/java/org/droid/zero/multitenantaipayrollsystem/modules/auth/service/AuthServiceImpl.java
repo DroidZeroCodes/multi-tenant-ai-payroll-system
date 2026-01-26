@@ -10,7 +10,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.auth.repository.UserCre
 import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
 import org.droid.zero.multitenantaipayrollsystem.security.jwt.TokenService;
 import org.droid.zero.multitenantaipayrollsystem.system.BaseService;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ResourceNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.system.util.HeaderUtils;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
@@ -37,7 +37,7 @@ public class AuthServiceImpl extends BaseService implements AuthService {
     public void changeEmail(ChangeEmailRequest request, UUID userId) {
         //Validate that the user exists
         UserCredentials credentials = credentialsRepository.findByUserId(userId)
-                .orElseThrow(() -> new ObjectNotFoundException(USER, userId));
+                .orElseThrow(() -> new ResourceNotFoundException(USER, userId));
 
         //Verify that the contactEmail is new
         if (request.email().equals(credentials.getEmail())) throw new IllegalArgumentException("new contactEmail must not be the same as old contactEmail");
@@ -55,7 +55,7 @@ public class AuthServiceImpl extends BaseService implements AuthService {
 
         //Validate that the user exists
         UserCredentials credentials = credentialsRepository.findByUserId(userId)
-                .orElseThrow(() -> new ObjectNotFoundException(USER, "userId"));
+                .orElseThrow(() -> new ResourceNotFoundException(USER, "userId"));
 
         //Verify that the oldPassword in the request matches the current password
         String oldPassword = request.oldPassword();

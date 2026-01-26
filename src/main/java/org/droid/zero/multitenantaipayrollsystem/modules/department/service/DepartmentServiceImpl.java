@@ -8,7 +8,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.department.model.Depart
 import org.droid.zero.multitenantaipayrollsystem.modules.department.repository.DepartmentRepository;
 import org.droid.zero.multitenantaipayrollsystem.system.BaseService;
 import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ResourceNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.system.util.FieldDuplicateValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ public class DepartmentServiceImpl extends BaseService implements DepartmentServ
     @Override
     public DepartmentResponse findById(UUID departmentId) {
         Department requestedDepartment = this.departmentRepository.findById(departmentId)
-                .orElseThrow(()-> new ObjectNotFoundException(DEPARTMENT, departmentId));
+                .orElseThrow(()-> new ResourceNotFoundException(DEPARTMENT, departmentId));
 
         return this.departmentMapper.toResponse(requestedDepartment);
     }
@@ -56,7 +56,7 @@ public class DepartmentServiceImpl extends BaseService implements DepartmentServ
     public DepartmentResponse update(DepartmentRequest request, UUID departmentId) {
         //Find the Department from the repository
         Department existingDepartment = this.departmentRepository.findById(departmentId)
-                .orElseThrow(()-> new ObjectNotFoundException(DEPARTMENT, departmentId));
+                .orElseThrow(()-> new ResourceNotFoundException(DEPARTMENT, departmentId));
 
         //Update the department
         existingDepartment.updateDepartmentDetails(
@@ -71,7 +71,7 @@ public class DepartmentServiceImpl extends BaseService implements DepartmentServ
     @Override
     public void toggleDepartmentStatus(UUID departmentId) {
         Department existingDepartment = this.departmentRepository.findById(departmentId)
-                .orElseThrow(()-> new ObjectNotFoundException(DEPARTMENT, departmentId));
+                .orElseThrow(()-> new ResourceNotFoundException(DEPARTMENT, departmentId));
 
         existingDepartment.toggleActiveStatus();
     }

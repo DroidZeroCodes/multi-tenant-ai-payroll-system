@@ -9,7 +9,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.department.service.Depa
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.DuplicateResourceException;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ResourceNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.test.config.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,7 +93,7 @@ class DepartmentServiceTest extends BaseUnitTest {
 
         // Act & Assert
         assertThatThrownBy(() -> departmentService.findById(departmentId))
-                .isInstanceOf(ObjectNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Could not find DEPARTMENT with ID '" + departmentId + "'.");
 
         verify(departmentRepository, times(1)).findById(departmentId);

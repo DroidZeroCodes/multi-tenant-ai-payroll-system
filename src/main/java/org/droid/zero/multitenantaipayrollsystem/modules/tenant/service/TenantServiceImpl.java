@@ -11,7 +11,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.user.constant.UserRole;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
 import org.droid.zero.multitenantaipayrollsystem.system.BaseService;
 import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ResourceNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.system.util.FieldDuplicateValidator;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ public class TenantServiceImpl extends BaseService implements TenantService {
     @Override
     public TenantResponse findById(UUID tenantId) {
         Tenant requestedTenant = this.tenantRepository.findById(tenantId)
-                .orElseThrow(()-> new ObjectNotFoundException(TENANT, tenantId));
+                .orElseThrow(()-> new ResourceNotFoundException(TENANT, tenantId));
 
         return tenantMapper.toResponse(requestedTenant);
     }
@@ -86,12 +86,12 @@ public class TenantServiceImpl extends BaseService implements TenantService {
         UUID activeTenant = TenantContext.getTenantId();
 
         if (currentUser.getActiveRoles().contains(UserRole.TENANT_ADMIN)){
-            if (!activeTenant.equals(tenantId)) throw new ObjectNotFoundException(TENANT, tenantId);
+            if (!activeTenant.equals(tenantId)) throw new ResourceNotFoundException(TENANT, tenantId);
         }
 
         //Find the tenant to update, else throw an exception
         Tenant existingTenant = this.tenantRepository.findById(tenantId)
-                .orElseThrow(()-> new ObjectNotFoundException(TENANT, tenantId));
+                .orElseThrow(()-> new ResourceNotFoundException(TENANT, tenantId));
 
         //Validate if the provided arguments does not violate unique constraints
         new FieldDuplicateValidator()
@@ -112,7 +112,7 @@ public class TenantServiceImpl extends BaseService implements TenantService {
     public void toggleTenantStatus(UUID tenantId) {
         //Find the tenant to update, else throw an exception
         Tenant existingTenant = this.tenantRepository.findById(tenantId)
-                .orElseThrow(()-> new ObjectNotFoundException(TENANT, tenantId));
+                .orElseThrow(()-> new ResourceNotFoundException(TENANT, tenantId));
 
         existingTenant.toggleActiveStatus();
     }

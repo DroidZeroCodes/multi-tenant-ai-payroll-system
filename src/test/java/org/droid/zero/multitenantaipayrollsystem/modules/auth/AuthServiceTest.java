@@ -9,7 +9,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.auth.repository.UserCre
 import org.droid.zero.multitenantaipayrollsystem.modules.auth.service.AuthServiceImpl;
 import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
 import org.droid.zero.multitenantaipayrollsystem.security.jwt.TokenService;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ResourceNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.test.config.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -109,7 +109,7 @@ class AuthServiceTest extends BaseUnitTest {
 
         // Act & Assert
         assertThatThrownBy(() -> authService.changeEmail(changeEmailRequest, userId))
-                .isInstanceOf(ObjectNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Could not find " + USER + " with ID '" + userId +"'.");
 
         verify(credentialsRepository, times(1)).findByUserId(userId);

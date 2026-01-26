@@ -33,9 +33,9 @@ import static org.springframework.http.HttpStatus.*;
 @RestControllerAdvice
 public class ExceptionHandlerAdvice {
 
-    @ExceptionHandler(ObjectNotFoundException.class)
+    @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(NOT_FOUND)
-    public ResponseFactory<Object> handleObjectNotFoundException(ObjectNotFoundException e) {
+    public ResponseFactory<Object> handleObjectNotFoundException(ResourceNotFoundException e) {
         ErrorObject error = new ErrorObject(
                 NOT_FOUND,
                 "resource_not_found",

@@ -8,7 +8,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.position.model.Position
 import org.droid.zero.multitenantaipayrollsystem.modules.position.repository.PositionRepository;
 import org.droid.zero.multitenantaipayrollsystem.system.BaseService;
 import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ResourceNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.system.util.FieldDuplicateValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ public class PositionServiceImpl extends BaseService implements PositionService 
     @Override
     public PositionResponse findById(UUID positionId) {
         Position requestedPosition = this.positionRepository.findById(positionId)
-                .orElseThrow(()-> new ObjectNotFoundException(POSITION, positionId));
+                .orElseThrow(()-> new ResourceNotFoundException(POSITION, positionId));
 
         return this.positionMapper.toResponse(requestedPosition);
     }
@@ -57,7 +57,7 @@ public class PositionServiceImpl extends BaseService implements PositionService 
     public PositionResponse update(PositionRequest request, UUID positionId) {
         //Find the Position from the repository
         Position existingPosition = this.positionRepository.findById(positionId)
-                .orElseThrow(()-> new ObjectNotFoundException(POSITION, positionId));
+                .orElseThrow(()-> new ResourceNotFoundException(POSITION, positionId));
 
         //Update the position
         existingPosition.updatePositionDetails(
@@ -73,7 +73,7 @@ public class PositionServiceImpl extends BaseService implements PositionService 
     @Override
     public void togglePositionStatus(UUID positionId) {
         Position existingPosition = this.positionRepository.findById(positionId)
-                .orElseThrow(()-> new ObjectNotFoundException(POSITION, positionId));
+                .orElseThrow(()-> new ResourceNotFoundException(POSITION, positionId));
 
         existingPosition.toggleActiveStatus();
     }
