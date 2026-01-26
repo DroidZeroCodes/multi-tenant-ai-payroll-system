@@ -179,6 +179,53 @@ public class ExceptionHandlerAdvice {
         );
     }
 
+
+    @ExceptionHandler(AccountUnverifiedException.class)
+    @ResponseStatus(FORBIDDEN)
+    public ResponseFactory<Object> handleAccountUnverifiedException(AccountUnverifiedException e) {
+        return ResponseFactory.error(
+                e.getMessage(),
+                Collections.singletonList(new ErrorObject(
+                        FORBIDDEN,
+                        "account_unverified",
+                        "Account Unverified",
+                        e.getMessage(),
+                        new Source("account")
+                ))
+        );
+    }
+
+    @ExceptionHandler(BusinessRuleException.class)
+    @ResponseStatus(UNPROCESSABLE_ENTITY)
+    public ResponseFactory<Object> handleBusinessRuleException(BusinessRuleException e) {
+        return ResponseFactory.error(
+                e.getMessage(),
+                Collections.singletonList(new ErrorObject(
+                        UNPROCESSABLE_ENTITY,
+                        "business_rule_violation",
+                        "Business Rule Violation",
+                        e.getMessage(),
+                        new Source("business_rule")
+                ))
+        );
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ResponseFactory<Object> handleValidationException(ValidationException e) {
+        return ResponseFactory.error(
+                e.getMessage(),
+                Collections.singletonList(new ErrorObject(
+                        BAD_REQUEST,
+                        "validation_error",
+                        "Validation Error",
+                        e.getMessage(),
+                        new Source("validation")
+                ))
+        );
+    }
+
+
     @ExceptionHandler(TooManyRequestsException.class)
     @ResponseStatus(TOO_MANY_REQUESTS)
     public ResponseFactory<Object> handleTooManyRequestsException(TooManyRequestsException ex) {
