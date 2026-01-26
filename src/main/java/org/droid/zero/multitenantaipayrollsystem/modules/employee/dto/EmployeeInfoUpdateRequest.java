@@ -24,7 +24,7 @@ public record EmployeeInfoUpdateRequest(
         @NotBlank(message = "phone is required")
         String phone,
 
-        @NotBlank(message = "date of birth is required")
+        @NotNull(message = "date of birth is required")
         LocalDate dob,
 
         @NotBlank(message = "address is required")

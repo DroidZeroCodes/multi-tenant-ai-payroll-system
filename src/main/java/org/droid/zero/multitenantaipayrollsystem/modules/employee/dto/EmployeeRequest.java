@@ -26,7 +26,7 @@ public record EmployeeRequest(
         @NotBlank(message = "phone is required")
         String phone,
 
-        @NotBlank(message = "date of birth is required")
+        @NotNull(message = "date of birth is required")
         LocalDate dob,
 
         @NotBlank(message = "address is required")
@@ -35,7 +35,7 @@ public record EmployeeRequest(
         @NotBlank(message = "gender is required")
         String gender,
 
-        @NotBlank(message = "joining date is required")
+        @NotNull(message = "joining date is required")
         LocalDate joiningDate,
 
         EMPLOYMENT_TYPE employmentType,

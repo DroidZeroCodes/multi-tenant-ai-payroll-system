@@ -3,6 +3,7 @@ package org.droid.zero.multitenantaipayrollsystem.modules.employee.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.modules.department.model.Department;
@@ -41,7 +42,7 @@ public class Employee extends TenantScopedEntity{
     @NotBlank(message = "phone is required")
     private String phone;
 
-    @NotBlank(message = "date of birth is required")
+    @NotNull(message = "date of birth is required")
     private LocalDate dob;
 
     @NotBlank(message = "address is required")
@@ -50,7 +51,7 @@ public class Employee extends TenantScopedEntity{
     @NotBlank(message = "gender is required")
     private String gender;
 
-    @NotBlank(message = "joining date is required")
+    @NotNull(message = "joining date is required")
     private LocalDate joiningDate;
 
     @Enumerated(EnumType.STRING)
