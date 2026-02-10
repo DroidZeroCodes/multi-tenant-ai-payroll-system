@@ -9,8 +9,8 @@ public interface AllowanceService {
 
     AllowanceResponse findById(UUID id);
 
-    AllowanceResponse save(AllowanceRequest salary);
+    AllowanceResponse save(AllowanceRequest allowance);
 
-    AllowanceResponse update(AllowanceRequest salary, UUID salaryId);
+    AllowanceResponse update(AllowanceRequest allowance, UUID allowanceId);
 
 }
