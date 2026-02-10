@@ -36,11 +36,11 @@ The Multi-Tenant AI Payroll System is an enterprise-grade solution for managing 
 ## 🛠️ Tech Stack
 
 ### Core Framework
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| **Java** | OpenJDK | 21+ |
-| **Framework** | Spring Boot | 3.5.8 |
-| **Build Tool** | Maven | 3.9+ |
+| Component      | Technology  | Version |
+|----------------|-------------|---------|
+| **Java**       | OpenJDK     | 21+     |
+| **Framework**  | Spring Boot | 3.5.8   |
+| **Build Tool** | Maven       | 3.9+    |
 
 ### Key Dependencies
 

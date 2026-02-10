@@ -67,7 +67,7 @@ public class EmployeeController {
     @PatchMapping("/{employeeId}/status")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN', 'HR_OFFICER')")
-    public ResponseFactory<EmployeeResponse> updateEmployeeStatus(@PathVariable UUID employeeId, @RequestBody EMPLOYEE_STATUS status) {
+    public ResponseFactory<EmployeeResponse> updateEmployeeStatus(@PathVariable UUID employeeId, @RequestParam EMPLOYEE_STATUS status) {
         return ResponseFactory.success(
                 "Update Success",
                 employeeService.updateEmployeeStatus(employeeId, status)
@@ -77,7 +77,7 @@ public class EmployeeController {
     @PatchMapping("/{employeeId}/position")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN', 'HR_OFFICER')")
-    public ResponseFactory<EmployeeResponse> updateEmployeePosition(@PathVariable UUID employeeId, @RequestBody UUID positionId) {
+    public ResponseFactory<EmployeeResponse> updateEmployeePosition(@PathVariable UUID employeeId, @RequestParam UUID positionId) {
         return ResponseFactory.success(
                 "Update Success",
                 employeeService.updateEmployeePosition(employeeId, positionId)
@@ -87,7 +87,7 @@ public class EmployeeController {
     @PatchMapping("/{employeeId}/department")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'TENANT_ADMIN', 'HR_OFFICER')")
-    public ResponseFactory<EmployeeResponse> updateEmployeeDepartment(@PathVariable UUID employeeId, @RequestBody UUID departmentId) {
+    public ResponseFactory<EmployeeResponse> updateEmployeeDepartment(@PathVariable UUID employeeId, @RequestParam UUID departmentId) {
         return ResponseFactory.success(
                 "Update Success",
                 employeeService.updateEmployeeDepartment(employeeId, departmentId)

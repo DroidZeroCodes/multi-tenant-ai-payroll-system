@@ -8,7 +8,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.allowance.model.Allowan
 import org.droid.zero.multitenantaipayrollsystem.modules.allowance.repository.AllowanceRepository;
 import org.droid.zero.multitenantaipayrollsystem.system.BaseService;
 import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ResourceNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.system.util.FieldDuplicateValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ public class AllowanceServiceImpl extends BaseService implements AllowanceServic
     @Override
     public AllowanceResponse findById(UUID allowanceId) {
         Allowance requestedAllowance = this.allowanceRepository.findById(allowanceId )
-                .orElseThrow(()-> new ObjectNotFoundException(ALLOWANCE, allowanceId ));
+                .orElseThrow(()-> new ResourceNotFoundException(ALLOWANCE, allowanceId ));
 
         return this.allowanceMapper.toResponse(requestedAllowance);
     }
@@ -59,7 +59,7 @@ public class AllowanceServiceImpl extends BaseService implements AllowanceServic
     public AllowanceResponse update(AllowanceRequest request, UUID allowanceId ) {
         //Find the Allowance  from the repository
         Allowance existingAllowance = this.allowanceRepository.findById(allowanceId )
-                .orElseThrow(()-> new ObjectNotFoundException(ALLOWANCE, allowanceId ));
+                .orElseThrow(()-> new ResourceNotFoundException(ALLOWANCE, allowanceId ));
 
         //Update the allowance 
         existingAllowance.updateAllowanceDetails(

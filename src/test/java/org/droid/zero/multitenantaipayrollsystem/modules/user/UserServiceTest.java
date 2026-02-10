@@ -13,7 +13,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.user.service.UserServic
 import org.droid.zero.multitenantaipayrollsystem.system.TenantExecutor;
 import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.DuplicateResourceException;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ResourceNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.test.config.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,8 +35,6 @@ import static org.droid.zero.multitenantaipayrollsystem.modules.user.constant.Us
 import static org.droid.zero.multitenantaipayrollsystem.system.ResourceType.USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -89,13 +87,6 @@ class UserServiceTest extends BaseUnitTest {
         user.setId(UUID.randomUUID());
         userId = user.getId();
 
-//        UserCredentials credentials = new UserCredentials(
-//                "test@example.com",
-//                "hashedPassword",
-//                Set.of(EMPLOYEE),
-//                tenant
-//        );
-
         userRegistrationRequest = new UserRegistrationRequest(
                 "Test",
                 "User",
@@ -131,7 +122,7 @@ class UserServiceTest extends BaseUnitTest {
 
         // Act & Assert
         assertThatThrownBy(() -> userService.findById(userId))
-                .isInstanceOf(ObjectNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Could not find USER with ID '" + userId + "'.");
         
         verify(userRepository, times(1)).findByIdAndUserTenantRoles_TenantId(userId, TenantContext.getTenantId());

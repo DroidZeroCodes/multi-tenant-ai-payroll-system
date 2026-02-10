@@ -1,6 +1,6 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.salary.dto;
 
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 public record SalaryStructureResponse(
@@ -8,6 +8,6 @@ public record SalaryStructureResponse(
         String name,
         String description,
         Double baseSalary,
-        Date effectiveDate,
+        LocalDate effectiveDate,
         boolean active
 ){}

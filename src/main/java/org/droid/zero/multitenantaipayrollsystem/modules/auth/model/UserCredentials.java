@@ -57,8 +57,4 @@ public class UserCredentials extends BaseModel {
     public void auditLogin() {
         this.lastLoginAt = Instant.now();
     }
-
-    public void hashPassword(String password) {
-        this.passwordHash = password;
-    }
 }

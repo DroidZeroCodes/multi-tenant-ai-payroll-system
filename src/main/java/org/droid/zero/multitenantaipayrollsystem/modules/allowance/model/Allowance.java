@@ -1,9 +1,6 @@
 package org.droid.zero.multitenantaipayrollsystem.modules.allowance.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,22 +16,33 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "allowances")
+@Table(
+        name = "allowances",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uc_allowance_name_tenant_id",
+                        columnNames = {"name", "tenant_id"}
+                )
+        }
+)
 public class Allowance extends TenantScopedEntity {
 
     @NotBlank(message = "name is required")
+    @Column(name = "name", nullable = false)
     private String name;
 
     @NotBlank(message = "description is required")
+    @Column(name = "description", nullable = false)
     private String description;
 
     @NotBlank(message = "allowance type is required")
+    @Column(name = "allowance_type", nullable = false)
     private String allowanceType;
 
     @NotNull(message = "amount is required")
     @DecimalMax(value = "999999.99", message = "amount must be less than or equal to 999999.99")
     @DecimalMin(value = "0.01", message = "amount must be greater than 0")
-    @Column(name = "amount")
+    @Column(name = "amount", nullable = false)
     private Double amount;
 
     @Column(name = "is_taxable")
@@ -69,5 +77,30 @@ public class Allowance extends TenantScopedEntity {
         this.taxable = taxable;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Allowance that = (Allowance) o;
+        return name.trim().equalsIgnoreCase(that.name.trim()) &&
+                tenantId.equals(that.tenantId);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(name, tenantId);
+    }
+
+    @Override
+    public String toString() {
+        return "Allowance{" +
+                "name=" + name + '\'' +
+                ", description=" + description + '\'' +
+                ", allowanceType=" + allowanceType + '\'' +
+                ", amount=" + amount + '\'' +
+                ", taxable=" + taxable + '\'' +
+                ", tenantId=" + tenantId + '\'' +
+                '}';
+    }
 }
 

@@ -3,6 +3,7 @@ package org.droid.zero.multitenantaipayrollsystem.modules.employee.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.droid.zero.multitenantaipayrollsystem.modules.department.model.Department;
@@ -13,95 +14,93 @@ import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.TenantScop
 import org.droid.zero.multitenantaipayrollsystem.modules.user.model.User;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "employees")
 @Getter
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class Employee extends TenantScopedEntity{
+@Table(
+        name = "employees",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uc_employee_employee_code_tenant_id",
+                        columnNames = {"employee_code", "tenant_id"}
+                )
+        }
+)
+public class Employee extends TenantScopedEntity {
 
-    @NotBlank(message = "employeeCode is required")
+    @NotBlank(message = "Employee code is required")
+    @Column(name = "employee_code", nullable = false)
     private String employeeCode;
 
-    @NotBlank(message = "firstName is required")
-    @Column(name = "first_name")
+    @NotBlank(message = "First name is required")
+    @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    @NotBlank(message = "lastName is required")
-    @Column(name = "last_name")
+    @NotBlank(message = "Last name is required")
+    @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @NotBlank(message = "email is required")
+    @NotBlank(message = "Email is required")
     @Email(message = "invalid email format")
+    @Column(name = "email", nullable = false)
     private String email;
 
-    @NotBlank(message = "phone is required")
+    @NotBlank(message = "Phone number is required")
+    @Column(name = "phone", nullable = false)
     private String phone;
 
-    @NotBlank(message = "date of birth is required")
-    private Date dob;
+    @NotNull(message = "Date of birth is required")
+    @Column(name = "dob", nullable = false)
+    private LocalDate dob;
 
-    @NotBlank(message = "address is required")
+    @NotBlank(message = "Address is required")
+    @Column(name = "address", nullable = false)
     private String address;
 
-    @NotBlank(message = "gender is required")
+    @NotBlank(message = "Gender is required")
+    @Column(name = "gender", nullable = false)
     private String gender;
 
-    @NotBlank(message = "joining date is required")
-    private Date joiningDate;
+    @NotNull(message = "Joining date is required")
+    @Column(name = "joining_date", nullable = false)
+    private LocalDate joiningDate;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "employment_type")
     private EMPLOYMENT_TYPE employmentType = EMPLOYMENT_TYPE.FULL_TIME;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private EMPLOYEE_STATUS status = EMPLOYEE_STATUS.INACTIVE;
-
-    @Column(
-            name = "user_id",
-            nullable = false,
-            unique = true,
-            updatable = false
-    )
-    protected UUID userId;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
-            name="user_id",
-            nullable=false,
-            updatable=false,
-            insertable = false
+            name = "user_id",
+            nullable = false,
+            updatable = false
     )
     private User user;
 
-    @Column(name = "department_id")
-    protected UUID departmentId;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name="department_id",
-            nullable = false,
-            insertable = false,
+            name = "department_id",
             updatable = false
     )
     private Department department;
 
-    @Column(name = "position_id")
-    protected UUID positionId;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-            name="position_id",
-            nullable = false,
-            insertable = false,
+            name = "position_id",
             updatable = false
     )
     private Position position;
 
     public Employee(
-            UUID userId,
+            User user,
             String employeeCode,
             String firstName,
             String lastName,
@@ -109,15 +108,13 @@ public class Employee extends TenantScopedEntity{
             String phone,
             String address,
             String gender,
-            Date dob,
-            Date joiningDate,
+            LocalDate dob,
+            LocalDate joiningDate,
             EMPLOYMENT_TYPE employmentType,
             EMPLOYEE_STATUS status,
-            UUID departmentId,
-            UUID positionId,
             UUID tenantId
     ) {
-        this.userId = userId;
+        this.user = user;
         this.status = status;
         this.employmentType = employmentType;
         this.joiningDate = joiningDate;
@@ -129,13 +126,12 @@ public class Employee extends TenantScopedEntity{
         this.lastName = lastName;
         this.firstName = firstName;
         this.employeeCode = employeeCode;
-        this.departmentId = departmentId;
-        this.positionId = positionId;
         this.tenantId = tenantId;
     }
 
     public void assignEmployeeCode(String employeeCode) {
-        if (employeeCode == null || employeeCode.isBlank()) throw new IllegalArgumentException("employeeCode cannot be null or blank");
+        if (employeeCode == null || employeeCode.isBlank())
+            throw new IllegalArgumentException("employeeCode cannot be null or blank");
 
         this.employeeCode = employeeCode;
     }
@@ -145,7 +141,7 @@ public class Employee extends TenantScopedEntity{
             String lastName,
             String email,
             String phone,
-            Date dob,
+            LocalDate dob,
             String address,
             String gender
     ) {
@@ -159,22 +155,65 @@ public class Employee extends TenantScopedEntity{
     }
 
     public void updateEmploymentDetails(
-            Date joiningDate,
+            LocalDate joiningDate,
             EMPLOYMENT_TYPE employmentType
-    ){
+    ) {
         if (joiningDate != null) this.joiningDate = joiningDate;
         if (employmentType != null) this.employmentType = employmentType;
     }
 
-    public void assignPosition(UUID positionId) {
-        if (positionId != null) this.positionId = positionId;
+    public void assignPosition(Position position) {
+        if (position != null) this.position = position;
     }
 
-    public void assignDepartment(UUID departmentId) {
-        if (departmentId != null) this.departmentId = departmentId;
+    public void assignDepartment(Department department) {
+        if (department != null) this.department = department;
     }
 
-    public void changeEmployeeStatus(EMPLOYEE_STATUS status){
+    public void changeEmployeeStatus(EMPLOYEE_STATUS status) {
         if (status != null) this.status = status;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Employee that = (Employee) o;
+        return firstName.concat(lastName).trim().equalsIgnoreCase(that.firstName.concat(that.lastName).trim()) &&
+                email.trim().equalsIgnoreCase(that.email.trim()) &&
+                phone.trim().equalsIgnoreCase(that.phone.trim()) &&
+                tenantId.equals(that.tenantId);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(
+                firstName.concat(lastName).trim(),
+                email.trim(),
+                phone.trim(),
+                tenantId
+        );
+    }
+
+    @Override
+    public String toString() {
+        String departmentId = department != null ? department.getId().toString() : "";
+        String positionId = position != null ? position.getId().toString() : "";
+        return "Employee{" +
+                "firstName=" + firstName + '\'' +
+                ", lastName=" + lastName + '\'' +
+                ", email=" + email + '\'' +
+                ", phone=" + phone + '\'' +
+                ", dob=" + dob + '\'' +
+                ", address=" + address + '\'' +
+                ", gender=" + gender + '\'' +
+                ", joiningDate=" + joiningDate + '\'' +
+                ", employmentType=" + employmentType + '\'' +
+                ", status=" + status + '\'' +
+                ", departmentId=" + departmentId + '\'' +
+                ", positionId=" + positionId + '\'' +
+                ", userId=" + user.getId() + '\'' +
+                ", tenantId=" + tenantId + '\'' +
+                '}';
     }
 }

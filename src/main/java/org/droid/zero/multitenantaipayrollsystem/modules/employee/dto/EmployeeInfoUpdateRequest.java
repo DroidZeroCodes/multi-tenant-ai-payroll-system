@@ -2,34 +2,31 @@ package org.droid.zero.multitenantaipayrollsystem.modules.employee.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-import java.util.Date;
-import java.util.UUID;
+import java.time.LocalDate;
 
 public record EmployeeInfoUpdateRequest(
-        @NotBlank(message = "userId is required")
-        UUID userId,
-
-        @NotBlank(message = "firstName is required")
+        @NotBlank(message = "First name is required")
         String firstName,
 
-        @NotBlank(message = "lastName is required")
+        @NotBlank(message = "Last Name is required")
         String lastName,
 
-        @NotBlank(message = "email is required")
-        @Email(message = "email must be a valid email address")
+        @NotBlank(message = "Email is required")
+        @Email(message = "Email must be a valid email address")
         String email,
 
-        @NotBlank(message = "phone is required")
+        @NotBlank(message = "Phone is required")
         String phone,
 
-        @NotBlank(message = "date of birth is required")
-        Date dob,
+        @NotNull(message = "Date of birth is required")
+        LocalDate dob,
 
-        @NotBlank(message = "address is required")
+        @NotBlank(message = "Address is required")
         String address,
 
-        @NotBlank(message = "gender is required")
+        @NotBlank(message = "Gender is required")
         String gender
 ) {
 }

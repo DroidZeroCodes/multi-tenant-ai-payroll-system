@@ -13,7 +13,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.user.repository.UserRep
 import org.droid.zero.multitenantaipayrollsystem.system.BaseService;
 import org.droid.zero.multitenantaipayrollsystem.system.TenantExecutor;
 import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ResourceNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.system.util.FieldDuplicateValidator;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,7 +45,7 @@ public class UserServiceImpl extends BaseService implements UserService {
     public UserResponse findById(UUID userId) {
         //Fetch the requested user (or fail with 404)
         User requestedUser = userRepository.findByIdAndUserTenantRoles_TenantId(userId, TenantContext.getTenantId())
-                .orElseThrow(() -> new ObjectNotFoundException(USER, userId));
+                .orElseThrow(() -> new ResourceNotFoundException(USER, userId));
 
 
         return userMapper.toResponse(requestedUser);
@@ -86,7 +86,7 @@ public class UserServiceImpl extends BaseService implements UserService {
     }
 
     private User createUser(UserRegistrationRequest request, UUID tenantId) {
-        if (!tenantRepository.existsById(tenantId)) throw new ObjectNotFoundException(TENANT, tenantId, "tenantId");
+        if (!tenantRepository.existsById(tenantId)) throw new ResourceNotFoundException(TENANT, tenantId, "tenantId");
 
         //Validate if the provided arguments does not violate unique constraints
         userRepository.findByContactEmail(request.contactEmail()).ifPresent(user -> new FieldDuplicateValidator()

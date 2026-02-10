@@ -3,11 +3,13 @@ package org.droid.zero.multitenantaipayrollsystem.modules.employee.dto;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.constant.EMPLOYEE_STATUS;
 import org.droid.zero.multitenantaipayrollsystem.modules.employee.constant.EMPLOYMENT_TYPE;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 public record EmployeeResponse(
         UUID id,
+        UUID positionId,
+        UUID departmentId,
         String employeeCode,
         String firstName,
         String lastName,
@@ -15,10 +17,8 @@ public record EmployeeResponse(
         String phone,
         String address,
         String gender,
-        Date dob,
-        Date joiningDate,
+        LocalDate dob,
+        LocalDate joiningDate,
         EMPLOYMENT_TYPE employmentType,
-        EMPLOYEE_STATUS status,
-        String positionTitle,
-        String departmentName
+        EMPLOYEE_STATUS status
 ) {}

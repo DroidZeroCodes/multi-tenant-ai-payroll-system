@@ -48,7 +48,7 @@ public class TenantScopedEntityListener {
     public void checkTenant(Object entity) {
         if (SKIP_TENANT_CHECK.get()) return;
         if (!(entity instanceof TenantScopedEntity)) return;
-        if (UserContext.hasRoles(SUPER_ADMIN)) return;
+        if (UserContext.hasAnyRoles(SUPER_ADMIN)) return;
 
         UUID currentTenantIdentifier = TenantContext.getTenantId();
         UUID entityTenantIdentifier = ((TenantScopedEntity) entity).getTenantId();

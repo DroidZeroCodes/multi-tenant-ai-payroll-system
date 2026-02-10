@@ -7,12 +7,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 import static java.util.Arrays.*;
 
 @Component
 public class UserContext {
 
-    private static final ThreadLocal<String> EMPLOYEE_ID = new ThreadLocal<>();
+    private static final ThreadLocal<UUID> EMPLOYEE_ID = new ThreadLocal<>();
 
     public static User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -24,17 +26,21 @@ public class UserContext {
         return null;
     }
 
-    public static boolean hasRoles(UserRole ...roles) {
+    public static boolean hasAnyRoles(UserRole ...roles) {
         User user = getCurrentUser();
         return user != null && user.getActiveRoles().stream()
                 .anyMatch(role -> asList(roles).contains(role));
     }
 
-    public static String getEmployeeId() {
+    public static boolean isNot(UserRole ...roles) {
+        return !hasAnyRoles(roles);
+    }
+
+    public static UUID getEmployeeId() {
         return EMPLOYEE_ID.get();
     }
 
-    public static void setEmployeeId(String employeeId) {
+    public static void setEmployeeId(UUID employeeId) {
         EMPLOYEE_ID.set(employeeId);
     }
 

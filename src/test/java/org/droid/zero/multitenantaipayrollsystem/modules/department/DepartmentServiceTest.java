@@ -9,7 +9,7 @@ import org.droid.zero.multitenantaipayrollsystem.modules.department.service.Depa
 import org.droid.zero.multitenantaipayrollsystem.modules.tenant.model.Tenant;
 import org.droid.zero.multitenantaipayrollsystem.system.context.TenantContext;
 import org.droid.zero.multitenantaipayrollsystem.system.exceptions.DuplicateResourceException;
-import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ObjectNotFoundException;
+import org.droid.zero.multitenantaipayrollsystem.system.exceptions.ResourceNotFoundException;
 import org.droid.zero.multitenantaipayrollsystem.test.config.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,8 +26,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowableOfType;
 import static org.droid.zero.multitenantaipayrollsystem.system.ResourceType.DEPARTMENT;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,10 +34,9 @@ class DepartmentServiceTest extends BaseUnitTest {
     @Mock
     private DepartmentRepository departmentRepository;
 
-    private final DepartmentMapper departmentMapper = Mappers.getMapper(DepartmentMapper.class);;
+    private final DepartmentMapper departmentMapper = Mappers.getMapper(DepartmentMapper.class);
     private final UUID departmentId = UUID.randomUUID();
 
-    private UUID tenantId;
     private Department department;
     private DepartmentRequest departmentRequest;
 
@@ -51,7 +48,7 @@ class DepartmentServiceTest extends BaseUnitTest {
 
         Tenant tenant = new Tenant();
         tenant.setId(UUID.randomUUID());
-        tenantId = tenant.getId();
+        UUID tenantId = tenant.getId();
         TenantContext.setTenantId(tenant.getId());
         
         department = new Department(
@@ -93,7 +90,7 @@ class DepartmentServiceTest extends BaseUnitTest {
 
         // Act & Assert
         assertThatThrownBy(() -> departmentService.findById(departmentId))
-                .isInstanceOf(ObjectNotFoundException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("Could not find DEPARTMENT with ID '" + departmentId + "'.");
 
         verify(departmentRepository, times(1)).findById(departmentId);
