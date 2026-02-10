@@ -9,8 +9,8 @@ public interface DeductionService {
 
     DeductionResponse findById(UUID id);
 
-    DeductionResponse save(DeductionRequest salary);
+    DeductionResponse save(DeductionRequest deductionRequest);
 
-    DeductionResponse update(DeductionRequest salary, UUID salaryId);
+    DeductionResponse update(DeductionRequest deductionRequest, UUID deductionId);
 
 }
