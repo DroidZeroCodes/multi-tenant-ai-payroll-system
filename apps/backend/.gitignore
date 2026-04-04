@@ -1,4 +1,4 @@
 src/main/**/target/
 src/test/**/target/
 src/main/resources/.env
-#.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.jar
