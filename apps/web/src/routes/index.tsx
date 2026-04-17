@@ -1,29 +1,19 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import {createFileRoute, Link} from '@tanstack/react-router'
 import { ArrowRight, Calendar, MapPin, Users } from 'lucide-react'
-
-import { allSpeakers, allTalks } from 'content-collections'
-
-import SpeakerCard from '#/components/SpeakerCard'
-import TalkCard from '#/components/TalkCard'
-import RemyAssistant from '#/components/RemyAssistant'
-import HeroCarousel from '#/components/HeroCarousel'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
 })
 
 function HomePage() {
-  const featuredSpeakers = allSpeakers.slice(0, 3)
-  const featuredTalks = allTalks.slice(0, 4)
 
   return (
     <>
-      <RemyAssistant />
+      {/*<RemyAssistant />*/}
 
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center justify-center px-6 overflow-hidden">
         {/* Background carousel */}
-        <HeroCarousel />
 
         <div className="relative max-w-5xl mx-auto text-center z-10">
           {/* Event date badge */}
@@ -51,7 +41,7 @@ function HomePage() {
           <div className="flex flex-wrap justify-center gap-8 mb-12">
             <div className="text-center">
               <div className="text-4xl font-display font-bold text-gold">
-                {allSpeakers.length}
+                {/*{allSpeakers.length}*/}
               </div>
               <div className="text-cream/50 text-sm uppercase tracking-wider">
                 Master Chefs
@@ -59,7 +49,7 @@ function HomePage() {
             </div>
             <div className="text-center">
               <div className="text-4xl font-display font-bold text-gold">
-                {allTalks.length}
+                {/*{allTalks.length}*/}
               </div>
               <div className="text-cream/50 text-sm uppercase tracking-wider">
                 Sessions
@@ -77,7 +67,7 @@ function HomePage() {
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               to="/speakers"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-copper to-copper-dark text-charcoal font-semibold text-lg transition-all hover:shadow-lg hover:shadow-copper/30 hover:scale-[1.02]"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-linear-to-r from-copper to-copper-dark text-charcoal font-semibold text-lg transition-all hover:shadow-lg hover:shadow-copper/30 hover:scale-[1.02]"
             >
               <Users className="w-5 h-5" />
               Meet Our Speakers
@@ -93,88 +83,88 @@ function HomePage() {
         </div>
       </section>
 
-      {/* Featured Speakers Section */}
-      <section className="py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-cream mb-3">
-                Featured <span className="text-gold italic">Speakers</span>
-              </h2>
-              <p className="text-cream/60 text-lg font-body">
-                Learn from award-winning pastry chefs and master bakers
-              </p>
-            </div>
-            <Link
-              to="/speakers"
-              className="hidden md:inline-flex items-center gap-2 text-gold hover:text-gold/80 transition-colors font-medium"
-            >
-              View all speakers
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+      {/*/!* Featured Speakers Section *!/*/}
+      {/*<section className="py-20 px-6">*/}
+      {/*  <div className="max-w-7xl mx-auto">*/}
+      {/*    <div className="flex items-end justify-between mb-12">*/}
+      {/*      <div>*/}
+      {/*        <h2 className="font-display text-4xl md:text-5xl font-bold text-cream mb-3">*/}
+      {/*          Featured <span className="text-gold italic">Speakers</span>*/}
+      {/*        </h2>*/}
+      {/*        <p className="text-cream/60 text-lg font-body">*/}
+      {/*          Learn from award-winning pastry chefs and master bakers*/}
+      {/*        </p>*/}
+      {/*      </div>*/}
+      {/*      <Link*/}
+      {/*        to="/speakers"*/}
+      {/*        className="hidden md:inline-flex items-center gap-2 text-gold hover:text-gold/80 transition-colors font-medium"*/}
+      {/*      >*/}
+      {/*        View all speakers*/}
+      {/*        <ArrowRight className="w-4 h-4" />*/}
+      {/*      </Link>*/}
+      {/*    </div>*/}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredSpeakers.map((speaker) => (
-              <SpeakerCard key={speaker.slug} speaker={speaker} featured />
-            ))}
-          </div>
+      {/*    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">*/}
+      {/*      {featuredSpeakers.map((speaker) => (*/}
+      {/*        <SpeakerCard key={speaker.slug} speaker={speaker} featured />*/}
+      {/*      ))}*/}
+      {/*    </div>*/}
 
-          <div className="md:hidden mt-8 text-center">
-            <Link
-              to="/speakers"
-              className="inline-flex items-center gap-2 text-gold hover:text-gold/80 transition-colors font-medium"
-            >
-              View all speakers
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/*    <div className="md:hidden mt-8 text-center">*/}
+      {/*      <Link*/}
+      {/*        to="/speakers"*/}
+      {/*        className="inline-flex items-center gap-2 text-gold hover:text-gold/80 transition-colors font-medium"*/}
+      {/*      >*/}
+      {/*        View all speakers*/}
+      {/*        <ArrowRight className="w-4 h-4" />*/}
+      {/*      </Link>*/}
+      {/*    </div>*/}
+      {/*  </div>*/}
+      {/*</section>*/}
 
-      {/* Divider */}
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-      </div>
+      {/*/!* Divider *!/*/}
+      {/*<div className="max-w-7xl mx-auto px-6">*/}
+      {/*  <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />*/}
+      {/*</div>*/}
 
-      {/* Featured Sessions Section */}
-      <section className="py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <h2 className="font-display text-4xl md:text-5xl font-bold text-cream mb-3">
-                Featured <span className="text-gold italic">Sessions</span>
-              </h2>
-              <p className="text-cream/60 text-lg font-body">
-                Masterclasses and demonstrations to elevate your craft
-              </p>
-            </div>
-            <Link
-              to="/talks"
-              className="hidden md:inline-flex items-center gap-2 text-gold hover:text-gold/80 transition-colors font-medium"
-            >
-              View all sessions
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+      {/*/!* Featured Sessions Section *!/*/}
+      {/*<section className="py-20 px-6">*/}
+      {/*  <div className="max-w-7xl mx-auto">*/}
+      {/*    <div className="flex items-end justify-between mb-12">*/}
+      {/*      <div>*/}
+      {/*        <h2 className="font-display text-4xl md:text-5xl font-bold text-cream mb-3">*/}
+      {/*          Featured <span className="text-gold italic">Sessions</span>*/}
+      {/*        </h2>*/}
+      {/*        <p className="text-cream/60 text-lg font-body">*/}
+      {/*          Masterclasses and demonstrations to elevate your craft*/}
+      {/*        </p>*/}
+      {/*      </div>*/}
+      {/*      <Link*/}
+      {/*        to="/talks"*/}
+      {/*        className="hidden md:inline-flex items-center gap-2 text-gold hover:text-gold/80 transition-colors font-medium"*/}
+      {/*      >*/}
+      {/*        View all sessions*/}
+      {/*        <ArrowRight className="w-4 h-4" />*/}
+      {/*      </Link>*/}
+      {/*    </div>*/}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {featuredTalks.map((talk) => (
-              <TalkCard key={talk.slug} talk={talk} featured />
-            ))}
-          </div>
+      {/*    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">*/}
+      {/*      {featuredTalks.map((talk) => (*/}
+      {/*        <TalkCard key={talk.slug} talk={talk} featured />*/}
+      {/*      ))}*/}
+      {/*    </div>*/}
 
-          <div className="md:hidden mt-8 text-center">
-            <Link
-              to="/talks"
-              className="inline-flex items-center gap-2 text-gold hover:text-gold/80 transition-colors font-medium"
-            >
-              View all sessions
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/*    <div className="md:hidden mt-8 text-center">*/}
+      {/*      <Link*/}
+      {/*        to="/talks"*/}
+      {/*        className="inline-flex items-center gap-2 text-gold hover:text-gold/80 transition-colors font-medium"*/}
+      {/*      >*/}
+      {/*        View all sessions*/}
+      {/*        <ArrowRight className="w-4 h-4" />*/}
+      {/*      </Link>*/}
+      {/*    </div>*/}
+      {/*  </div>*/}
+      {/*</section>*/}
 
       {/* CTA Section */}
       <section className="py-20 px-6">

@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UI Kitchen Sink — Design Reference</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          navy: {
+            50: '#eef0f6',
+            100: '#c5cae0',
+            200: '#9ba4cb',
+            300: '#717eb5',
+            400: '#4757a0',
+            500: '#1d2956',
+            600: '#17214a',
+            700: '#10193e',
+            800: '#0a1132',
+            900: '#050926',
+          },
+          scarlet: {
+            50: '#fbeaea',
+            100: '#f3b8b9',
+            200: '#eb8688',
+            300: '#e25457',
+            400: '#d23336',
+            500: '#bc282f',
+            600: '#a02028',
+            700: '#841821',
+            800: '#681019',
+            900: '#4c0812',
+          }
+        },
+        fontFamily: {
+          display: ['Playfair Display', 'serif'],
+          body: ['DM Sans', 'sans-serif'],
+          mono: ['DM Mono', 'monospace'],
+        }
+      }
+    }
+  }
+</script>
+<style>
+  * { font-family: 'DM Sans', sans-serif; }
+  .font-display { font-family: 'Playfair Display', serif; }
+  .font-mono { font-family: 'DM Mono', monospace; }
+
+  /* Section label */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #bc282f;
+    border-left: 3px solid #bc282f;
+    padding-left: 10px;
+    margin-bottom: 12px;
+  }
+
+  /* Sidebar nav */
+  .sidebar-link { transition: all 0.15s; }
+  .sidebar-link:hover { background: rgba(29,41,86,0.06); padding-left: 18px; }
+  .sidebar-link.active { background: #1d2956; color: white; border-left: 3px solid #bc282f; padding-left: 13px; }
+
+  /* Toggle switch */
+  .toggle-bg { transition: background 0.2s; }
+  .toggle-knob { transition: transform 0.2s; }
+
+  /* Badge pulse */
+  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .pulse-dot { animation: pulse-dot 1.5s infinite; }
+
+  /* Progress bar */
+  @keyframes progress-fill { from{width:0} to{width:var(--w)} }
+  .progress-bar { animation: progress-fill 1.2s ease forwards; }
+
+  /* Card hover */
+  .hover-card { transition: box-shadow 0.2s, transform 0.2s; }
+  .hover-card:hover { box-shadow: 0 20px 40px rgba(29,41,86,0.15); transform: translateY(-2px); }
+
+  /* Chip */
+  .chip { display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:500; }
+
+  /* Skeleton shimmer */
+  @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+  .skeleton { background: linear-gradient(90deg,#e8eaf0 25%,#f4f5f9 50%,#e8eaf0 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:6px; }
+
+  /* Divider */
+  .divider { height:1px;background:linear-gradient(to right,transparent,#d1d5e8,transparent); margin:0; }
+
+  /* Timeline dot */
+  .timeline-dot { width:12px;height:12px;border-radius:50%;border:2px solid #1d2956;background:white;margin-top:4px;flex-shrink:0; }
+  .timeline-dot.filled { background:#1d2956; }
+  .timeline-dot.accent { background:#bc282f;border-color:#bc282f; }
+
+  /* Step connector */
+  .step-connector { flex:1;height:2px;background:linear-gradient(to right,#1d2956,#bc282f); }
+
+  /* Breadcrumb sep */
+  .breadcrumb-sep::after { content:'/';color:#9ca3af;margin:0 6px; }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:#f1f1f1; }
+  ::-webkit-scrollbar-thumb { background:#1d2956;border-radius:3px; }
+
+  /* Table row hover */
+  .table-row { transition: background 0.1s; }
+  .table-row:hover { background: #f0f2f9; }
+
+  /* Avatar ring */
+  .avatar-ring { box-shadow: 0 0 0 3px white, 0 0 0 5px #1d2956; }
+  .avatar-ring-accent { box-shadow: 0 0 0 3px white, 0 0 0 5px #bc282f; }
+
+  /* Gradient text */
+  .gradient-text { background: linear-gradient(135deg,#1d2956,#bc282f); -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+<!-- ═══════════════════════════════════════════ TOP NAV ═══════════════════ -->
+<nav class="bg-navy-500 text-white sticky top-0 z-50 shadow-xl">
+  <div class="max-w-screen-2xl mx-auto px-6 flex items-center gap-6 h-16">
+    <!-- Logo -->
+    <div class="flex items-center gap-3 mr-4">
+      <div class="w-8 h-8 bg-scarlet-500 rounded-lg flex items-center justify-center font-display font-bold text-white text-sm">K</div>
+      <span class="font-display font-bold text-lg tracking-wide">Korus</span>
+    </div>
+    <!-- Nav links -->
+    <div class="hidden md:flex items-center gap-1 flex-1">
+      <a href="#" class="px-3 py-1.5 rounded-md text-sm font-medium bg-white/10 text-white">Dashboard</a>
+      <a href="#" class="px-3 py-1.5 rounded-md text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition">Projects</a>
+      <a href="#" class="px-3 py-1.5 rounded-md text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition">Reports</a>
+      <a href="#" class="px-3 py-1.5 rounded-md text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition">Settings</a>
+      <div class="relative">
+        <a href="#" class="px-3 py-1.5 rounded-md text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition flex items-center gap-1">
+          Team
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </a>
+      </div>
+    </div>
+    <!-- Right side -->
+    <div class="flex items-center gap-3 ml-auto">
+      <!-- Search -->
+      <div class="hidden lg:flex items-center gap-2 bg-white/10 rounded-lg px-3 py-1.5 text-sm text-white/60 w-52">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <span>Search…</span>
+        <span class="ml-auto text-xs bg-white/10 px-1.5 py-0.5 rounded font-mono">⌘K</span>
+      </div>
+      <!-- Notification bell -->
+      <button class="relative w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-scarlet-500 rounded-full pulse-dot"></span>
+      </button>
+      <!-- Avatar -->
+      <div class="w-9 h-9 rounded-lg bg-scarlet-500 flex items-center justify-center text-white font-semibold text-sm cursor-pointer">JD</div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════ BREADCRUMB ════════════════ -->
+<div class="bg-white border-b border-slate-200">
+  <div class="max-w-screen-2xl mx-auto px-6 py-2.5 flex items-center text-sm">
+    <span class="breadcrumb-sep text-navy-500 font-medium cursor-pointer hover:underline">Home</span>
+    <span class="breadcrumb-sep text-navy-500 cursor-pointer hover:underline">Dashboard</span>
+    <span class="breadcrumb-sep text-slate-400 cursor-pointer hover:underline">Projects</span>
+    <span class="text-scarlet-500 font-medium">UI Design System</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ MAIN LAYOUT ═══════════════ -->
+<div class="max-w-screen-2xl mx-auto flex gap-0">
+
+  <!-- SIDEBAR -->
+  <aside class="w-64 shrink-0 bg-white border-r border-slate-200 min-h-screen hidden lg:block sticky top-16 self-start">
+    <div class="p-4">
+      <p class="section-label">Navigation</p>
+      <nav class="space-y-0.5">
+        <a href="#" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Overview
+        </a>
+        <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 transition-all">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          Projects
+          <span class="ml-auto bg-navy-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">12</span>
+        </a>
+        <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 transition-all">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+          Team
+        </a>
+        <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 transition-all">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          Analytics
+        </a>
+        <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 transition-all relative">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          Messages
+          <span class="ml-auto bg-scarlet-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">3</span>
+        </a>
+      </nav>
+
+      <div class="divider my-4"></div>
+
+      <p class="section-label">Settings</p>
+      <nav class="space-y-0.5">
+        <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 transition-all">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+          Profile
+        </a>
+        <a href="#" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 transition-all">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Preferences
+        </a>
+      </nav>
+
+      <!-- User card in sidebar -->
+      <div class="mt-6 p-3 bg-navy-50 rounded-xl border border-navy-100">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-navy-500 flex items-center justify-center text-white text-xs font-bold">JD</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-semibold text-navy-700 truncate">Jane Doe</p>
+            <p class="text-xs text-slate-400 truncate">jane@korus.com</p>
+          </div>
+          <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="flex-1 min-w-0 p-6 space-y-10">
+
+    <!-- ── PAGE HEADER ─────────────────────────────────────── -->
+    <div class="flex items-start justify-between gap-4 flex-wrap">
+      <div>
+        <p class="section-label">Design System</p>
+        <h1 class="font-display text-3xl font-bold text-navy-600 leading-tight">UI Kitchen Sink</h1>
+        <p class="text-slate-500 mt-1 text-sm">Every component in one place — design reference only.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition">Export</button>
+        <button class="px-4 py-2 text-sm font-semibold rounded-lg bg-navy-500 text-white hover:bg-navy-600 transition shadow-sm">+ New Component</button>
+      </div>
+    </div>
+
+    <!-- ── STAT CARDS ──────────────────────────────────────── -->
+    <section>
+      <p class="section-label">Stat Cards</p>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- Card 1 -->
+        <div class="hover-card bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl bg-navy-50 flex items-center justify-center">
+              <svg class="w-5 h-5 text-navy-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+            </div>
+            <span class="chip bg-emerald-50 text-emerald-600">↑ 12%</span>
+          </div>
+          <p class="text-2xl font-bold text-navy-700 font-display">4,821</p>
+          <p class="text-xs text-slate-400 mt-1 font-medium uppercase tracking-wide">Total Users</p>
+        </div>
+        <!-- Card 2 -->
+        <div class="hover-card bg-navy-500 rounded-2xl p-5 shadow-sm">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <span class="chip bg-white/20 text-white">↑ 8.3%</span>
+          </div>
+          <p class="text-2xl font-bold text-white font-display">$92,400</p>
+          <p class="text-xs text-white/60 mt-1 font-medium uppercase tracking-wide">Revenue</p>
+        </div>
+        <!-- Card 3 -->
+        <div class="hover-card bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl bg-scarlet-50 flex items-center justify-center">
+              <svg class="w-5 h-5 text-scarlet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            </div>
+            <span class="chip bg-scarlet-50 text-scarlet-500">↓ 3.1%</span>
+          </div>
+          <p class="text-2xl font-bold text-navy-700 font-display">386</p>
+          <p class="text-xs text-slate-400 mt-1 font-medium uppercase tracking-wide">Open Tickets</p>
+        </div>
+        <!-- Card 4 -->
+        <div class="hover-card bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+              <svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <span class="chip bg-amber-50 text-amber-600">→ 0%</span>
+          </div>
+          <p class="text-2xl font-bold text-navy-700 font-display">99.98%</p>
+          <p class="text-xs text-slate-400 mt-1 font-medium uppercase tracking-wide">Uptime</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── BUTTONS ─────────────────────────────────────────── -->
+    <section>
+      <p class="section-label">Buttons</p>
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="space-y-5">
+          <!-- Variants -->
+          <div>
+            <p class="text-xs font-mono text-slate-400 mb-3">Variants</p>
+            <div class="flex flex-wrap gap-3 items-center">
+              <button class="px-5 py-2.5 text-sm font-semibold bg-navy-500 text-white rounded-lg hover:bg-navy-600 transition shadow-sm">Primary</button>
+              <button class="px-5 py-2.5 text-sm font-semibold bg-scarlet-500 text-white rounded-lg hover:bg-scarlet-600 transition shadow-sm">Danger</button>
+              <button class="px-5 py-2.5 text-sm font-semibold border-2 border-navy-500 text-navy-500 rounded-lg hover:bg-navy-50 transition">Outlined</button>
+              <button class="px-5 py-2.5 text-sm font-semibold text-navy-500 rounded-lg hover:bg-navy-50 transition">Ghost</button>
+              <button class="px-5 py-2.5 text-sm font-semibold bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition shadow-sm">Secondary</button>
+              <button class="px-5 py-2.5 text-sm font-semibold bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition">Success</button>
+              <button class="px-5 py-2.5 text-sm font-semibold bg-slate-200 text-slate-400 rounded-lg cursor-not-allowed" disabled>Disabled</button>
+            </div>
+          </div>
+          <!-- Sizes -->
+          <div>
+            <p class="text-xs font-mono text-slate-400 mb-3">Sizes</p>
+            <div class="flex flex-wrap gap-3 items-center">
+              <button class="px-2.5 py-1 text-xs font-semibold bg-navy-500 text-white rounded-md">XSmall</button>
+              <button class="px-3.5 py-1.5 text-sm font-semibold bg-navy-500 text-white rounded-lg">Small</button>
+              <button class="px-5 py-2.5 text-sm font-semibold bg-navy-500 text-white rounded-lg">Medium</button>
+              <button class="px-6 py-3 text-base font-semibold bg-navy-500 text-white rounded-xl">Large</button>
+              <button class="px-8 py-4 text-lg font-bold bg-navy-500 text-white rounded-2xl">XLarge</button>
+            </div>
+          </div>
+          <!-- With icons -->
+          <div>
+            <p class="text-xs font-mono text-slate-400 mb-3">With Icons</p>
+            <div class="flex flex-wrap gap-3 items-center">
+              <button class="px-5 py-2.5 text-sm font-semibold bg-navy-500 text-white rounded-lg flex items-center gap-2 hover:bg-navy-600 transition">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Add Item
+              </button>
+              <button class="px-5 py-2.5 text-sm font-semibold border border-slate-300 text-slate-700 bg-white rounded-lg flex items-center gap-2 hover:bg-slate-50 transition">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Upload
+              </button>
+              <button class="w-10 h-10 bg-scarlet-500 text-white rounded-lg flex items-center justify-center hover:bg-scarlet-600 transition">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+              <!-- Loading -->
+              <button class="px-5 py-2.5 text-sm font-semibold bg-navy-500 text-white rounded-lg flex items-center gap-2 opacity-80 cursor-wait">
+                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" class="opacity-75"/></svg>
+                Loading…
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── BADGES & CHIPS ──────────────────────────────────── -->
+    <section>
+      <p class="section-label">Badges & Chips</p>
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="space-y-5">
+          <div>
+            <p class="text-xs font-mono text-slate-400 mb-3">Status Badges</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="chip bg-emerald-50 text-emerald-700 border border-emerald-200">● Active</span>
+              <span class="chip bg-scarlet-50 text-scarlet-700 border border-scarlet-200">● Error</span>
+              <span class="chip bg-amber-50 text-amber-700 border border-amber-200">● Warning</span>
+              <span class="chip bg-slate-100 text-slate-600 border border-slate-200">● Inactive</span>
+              <span class="chip bg-blue-50 text-blue-700 border border-blue-200">● Pending</span>
+              <span class="chip bg-violet-50 text-violet-700 border border-violet-200">● Beta</span>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs font-mono text-slate-400 mb-3">Solid Badges</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="chip bg-navy-500 text-white">Primary</span>
+              <span class="chip bg-scarlet-500 text-white">Accent</span>
+              <span class="chip bg-emerald-500 text-white">Success</span>
+              <span class="chip bg-amber-400 text-white">Warning</span>
+              <span class="chip bg-slate-700 text-white">Dark</span>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs font-mono text-slate-400 mb-3">Tag Chips (dismissible)</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="chip bg-navy-50 text-navy-600 border border-navy-200">Design <button class="ml-1 text-navy-400 hover:text-navy-700">×</button></span>
+              <span class="chip bg-navy-50 text-navy-600 border border-navy-200">Frontend <button class="ml-1 text-navy-400 hover:text-navy-700">×</button></span>
+              <span class="chip bg-scarlet-50 text-scarlet-600 border border-scarlet-200">Urgent <button class="ml-1 text-scarlet-400 hover:text-scarlet-700">×</button></span>
+              <span class="chip bg-slate-100 text-slate-600 border border-slate-200">Q2 2025 <button class="ml-1 text-slate-400 hover:text-slate-700">×</button></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FORM INPUTS ─────────────────────────────────────── -->
+    <section>
+      <p class="section-label">Form Inputs</p>
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm grid md:grid-cols-2 gap-6">
+        <!-- Text inputs -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-navy-700 mb-1.5 uppercase tracking-wide">Text Input</label>
+            <input type="text" placeholder="Enter value…" class="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 focus:border-navy-400 transition" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-navy-700 mb-1.5 uppercase tracking-wide">With Icon</label>
+            <div class="relative">
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              <input type="text" placeholder="Search…" class="w-full border border-slate-300 rounded-lg pl-9 pr-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 focus:border-navy-400 transition" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-scarlet-600 mb-1.5 uppercase tracking-wide">Error State</label>
+            <input type="text" value="invalid@" class="w-full border border-scarlet-400 rounded-lg px-3.5 py-2.5 text-sm bg-scarlet-50 focus:outline-none focus:ring-2 focus:ring-scarlet-400 transition" />
+            <p class="text-xs text-scarlet-500 mt-1">Please enter a valid email address.</p>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-emerald-700 mb-1.5 uppercase tracking-wide">Success State</label>
+            <div class="relative">
+              <input type="text" value="jane.doe@company.com" class="w-full border border-emerald-400 rounded-lg px-3.5 py-2.5 pr-9 text-sm bg-emerald-50 focus:outline-none transition" />
+              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wide">Disabled</label>
+            <input type="text" value="Cannot edit" disabled class="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-400 bg-slate-50 cursor-not-allowed" />
+          </div>
+        </div>
+        <!-- More inputs -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-navy-700 mb-1.5 uppercase tracking-wide">Select Dropdown</label>
+            <select class="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 bg-white appearance-none">
+              <option>Choose a role…</option>
+              <option>Administrator</option>
+              <option>Editor</option>
+              <option>Viewer</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-navy-700 mb-1.5 uppercase tracking-wide">Textarea</label>
+            <textarea rows="3" placeholder="Write something…" class="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 resize-none transition"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-navy-700 mb-1.5 uppercase tracking-wide">Checkboxes</label>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2.5 cursor-pointer">
+                <input type="checkbox" checked class="w-4 h-4 rounded accent-navy-600" />
+                <span class="text-sm text-slate-700">Email notifications</span>
+              </label>
+              <label class="flex items-center gap-2.5 cursor-pointer">
+                <input type="checkbox" class="w-4 h-4 rounded accent-navy-600" />
+                <span class="text-sm text-slate-700">Weekly digest</span>
+              </label>
+              <label class="flex items-center gap-2.5 cursor-pointer">
+                <input type="checkbox" checked class="w-4 h-4 rounded accent-scarlet-600" />
+                <span class="text-sm text-slate-700">Critical alerts <span class="chip bg-scarlet-50 text-scarlet-600 ml-1">Required</span></span>
+              </label>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-navy-700 mb-1.5 uppercase tracking-wide">Radio Group</label>
+            <div class="flex gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="r" checked class="accent-navy-600" />
+                <span class="text-sm text-slate-700">Monthly</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="r" class="accent-navy-600" />
+                <span class="text-sm text-slate-700">Annual</span>
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer opacity-50">
+                <input type="radio" name="r" disabled class="accent-navy-600" />
+                <span class="text-sm text-slate-700">Custom</span>
+              </label>
+            </div>
+          </div>
+          <!-- Toggle -->
+          <div>
+            <label class="block text-xs font-semibold text-navy-700 mb-2 uppercase tracking-wide">Toggles</label>
+            <div class="space-y-2">
+              <div class="flex items-center gap-3">
+                <div class="toggle-bg w-11 h-6 bg-navy-500 rounded-full relative cursor-pointer">
+                  <div class="toggle-knob absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow translate-x-5"></div>
+                </div>
+                <span class="text-sm text-slate-700">Dark Mode <span class="text-xs text-slate-400">(on)</span></span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="toggle-bg w-11 h-6 bg-slate-200 rounded-full relative cursor-pointer">
+                  <div class="toggle-knob absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow"></div>
+                </div>
+                <span class="text-sm text-slate-700">Notifications <span class="text-xs text-slate-400">(off)</span></span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="toggle-bg w-11 h-6 bg-scarlet-500 rounded-full relative cursor-pointer">
+                  <div class="toggle-knob absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow translate-x-5"></div>
+                </div>
+                <span class="text-sm text-slate-700">Danger Mode <span class="text-xs text-scarlet-500">(on)</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── AUTHENTICATION CARD ─────────────────────────────── -->
+    <section>
+      <p class="section-label">Auth — Login Form</p>
+      <div class="flex gap-6 flex-wrap">
+        <!-- Login -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm w-full max-w-sm p-8">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-9 h-9 bg-navy-500 rounded-xl flex items-center justify-center font-display font-bold text-white text-sm">K</div>
+            <span class="font-display font-bold text-navy-700 text-lg">Korus</span>
+          </div>
+          <h2 class="font-display text-xl font-bold text-navy-700 mb-1">Welcome back</h2>
+          <p class="text-sm text-slate-400 mb-6">Sign in to your workspace</p>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-navy-700 mb-1.5 uppercase tracking-wide">Email</label>
+              <input type="email" placeholder="you@company.com" class="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 transition" />
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-semibold text-navy-700 uppercase tracking-wide">Password</label>
+                <a href="#" class="text-xs text-scarlet-500 hover:underline">Forgot?</a>
+              </div>
+              <div class="relative">
+                <input type="password" value="••••••••••" class="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 transition" />
+                <button class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                </button>
+              </div>
+            </div>
+            <label class="flex items-center gap-2.5 cursor-pointer">
+              <input type="checkbox" class="w-4 h-4 rounded accent-navy-600" />
+              <span class="text-sm text-slate-600">Remember me for 30 days</span>
+            </label>
+            <button class="w-full py-2.5 font-semibold text-sm bg-navy-500 text-white rounded-lg hover:bg-navy-600 transition shadow-sm">Sign In</button>
+            <div class="relative flex items-center gap-3 text-slate-300">
+              <div class="flex-1 h-px bg-slate-200"></div>
+              <span class="text-xs text-slate-400">or</span>
+              <div class="flex-1 h-px bg-slate-200"></div>
+            </div>
+            <button class="w-full py-2.5 font-semibold text-sm border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              Continue with Google
+            </button>
+          </div>
+          <p class="text-center text-xs text-slate-400 mt-5">No account? <a href="#" class="text-navy-500 font-semibold hover:underline">Create one</a></p>
+        </div>
+
+        <!-- MFA card -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm w-full max-w-sm p-8 self-start">
+          <div class="w-12 h-12 rounded-2xl bg-navy-50 flex items-center justify-center mb-5 mx-auto">
+            <svg class="w-6 h-6 text-navy-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          </div>
+          <h2 class="font-display text-xl font-bold text-navy-700 mb-1 text-center">Two-Factor Auth</h2>
+          <p class="text-sm text-slate-400 mb-6 text-center">Enter the 6-digit code from your authenticator</p>
+          <div class="flex gap-2 justify-center mb-6">
+            <input type="text" maxlength="1" class="w-11 h-13 text-center text-xl font-bold border-2 border-navy-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-400 bg-navy-50 text-navy-700" value="4" />
+            <input type="text" maxlength="1" class="w-11 h-13 text-center text-xl font-bold border-2 border-navy-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-400 bg-navy-50 text-navy-700" value="2" />
+            <input type="text" maxlength="1" class="w-11 h-13 text-center text-xl font-bold border-2 border-navy-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-400 bg-navy-50 text-navy-700" value="8" />
+            <input type="text" maxlength="1" class="w-11 h-13 text-center text-xl font-bold border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-400 text-slate-400" placeholder="·" />
+            <input type="text" maxlength="1" class="w-11 h-13 text-center text-xl font-bold border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-400 text-slate-400" placeholder="·" />
+            <input type="text" maxlength="1" class="w-11 h-13 text-center text-xl font-bold border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-400 text-slate-400" placeholder="·" />
+          </div>
+          <button class="w-full py-2.5 font-semibold text-sm bg-navy-500 text-white rounded-lg hover:bg-navy-600 transition">Verify Code</button>
+          <p class="text-center text-xs text-slate-400 mt-4">Didn't receive a code? <a href="#" class="text-scarlet-500 font-semibold hover:underline">Resend</a></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── MODAL ───────────────────────────────────────────── -->
+    <section>
+      <p class="section-label">Modals</p>
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- Confirm Modal -->
+        <div class="relative bg-slate-700/50 rounded-2xl p-6 flex items-center justify-center min-h-48">
+          <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm">
+            <div class="flex items-start gap-3 mb-4">
+              <div class="w-10 h-10 rounded-full bg-scarlet-100 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-scarlet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.07 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+              </div>
+              <div>
+                <h3 class="font-display font-bold text-navy-700 text-base">Delete Project</h3>
+                <p class="text-sm text-slate-500 mt-0.5">This will permanently delete the project and all associated data. This action cannot be undone.</p>
+              </div>
+            </div>
+            <div class="flex gap-2 justify-end">
+              <button class="px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50">Cancel</button>
+              <button class="px-4 py-2 text-sm font-semibold rounded-lg bg-scarlet-500 text-white hover:bg-scarlet-600">Delete</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Modal -->
+        <div class="relative bg-navy-500/20 rounded-2xl p-6 flex items-center justify-center min-h-48">
+          <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+            <div class="bg-navy-500 px-6 py-4 flex items-center justify-between">
+              <h3 class="font-display font-bold text-white text-base">Invite Team Member</h3>
+              <button class="text-white/60 hover:text-white">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div class="p-6 space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-navy-700 mb-1.5 uppercase tracking-wide">Email Address</label>
+                <input type="email" placeholder="colleague@company.com" class="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 transition" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-navy-700 mb-1.5 uppercase tracking-wide">Role</label>
+                <select class="w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 bg-white">
+                  <option>Editor</option>
+                  <option>Viewer</option>
+                  <option>Admin</option>
+                </select>
+              </div>
+            </div>
+            <div class="border-t border-slate-200 px-6 py-4 flex gap-2 justify-end bg-slate-50">
+              <button class="px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 text-slate-600">Cancel</button>
+              <button class="px-4 py-2 text-sm font-semibold rounded-lg bg-navy-500 text-white">Send Invite</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ALERTS ──────────────────────────────────────────── -->
+    <section>
+      <p class="section-label">Alerts & Toasts</p>
+      <div class="space-y-3">
+        <div class="flex items-start gap-3 p-4 rounded-xl bg-navy-50 border border-navy-200">
+          <svg class="w-5 h-5 text-navy-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div class="flex-1">
+            <p class="text-sm font-semibold text-navy-700">Informational</p>
+            <p class="text-sm text-navy-600 mt-0.5">Your data is being processed. This may take a few minutes.</p>
+          </div>
+          <button class="text-navy-400 hover:text-navy-700 text-lg leading-none">×</button>
+        </div>
+        <div class="flex items-start gap-3 p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+          <svg class="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div class="flex-1">
+            <p class="text-sm font-semibold text-emerald-700">Success</p>
+            <p class="text-sm text-emerald-600 mt-0.5">Your changes have been saved successfully.</p>
+          </div>
+          <button class="text-emerald-400 hover:text-emerald-700 text-lg leading-none">×</button>
+        </div>
+        <div class="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
+          <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <div class="flex-1">
+            <p class="text-sm font-semibold text-amber-700">Warning</p>
+            <p class="text-sm text-amber-600 mt-0.5">You are approaching your storage limit (85% used).</p>
+          </div>
+          <button class="text-amber-400 hover:text-amber-700 text-lg leading-none">×</button>
+        </div>
+        <div class="flex items-start gap-3 p-4 rounded-xl bg-scarlet-50 border border-scarlet-200">
+          <svg class="w-5 h-5 text-scarlet-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div class="flex-1">
+            <p class="text-sm font-semibold text-scarlet-700">Error</p>
+            <p class="text-sm text-scarlet-600 mt-0.5">Failed to connect to server. Please check your network connection.</p>
+          </div>
+          <button class="text-scarlet-400 hover:text-scarlet-700 text-lg leading-none">×</button>
+        </div>
+        <!-- Toast notification -->
+        <div class="flex items-center gap-3 p-4 rounded-xl bg-navy-700 text-white shadow-2xl max-w-sm border border-navy-600">
+          <div class="w-8 h-8 rounded-lg bg-scarlet-500 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm font-semibold">New message from Alex</p>
+            <p class="text-xs text-white/60">Just now</p>
+          </div>
+          <button class="text-white/40 hover:text-white text-lg leading-none">×</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── DATA TABLE ──────────────────────────────────────── -->
+    <section>
+      <p class="section-label">Data Table</p>
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <!-- Table toolbar -->
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center gap-3 flex-wrap">
+          <div class="relative flex-1 min-w-48">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" placeholder="Search projects…" class="w-full border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-400 bg-slate-50" />
+          </div>
+          <select class="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-600 bg-white focus:outline-none focus:ring-2 focus:ring-navy-400">
+            <option>All Statuses</option>
+            <option>Active</option>
+            <option>Paused</option>
+          </select>
+          <button class="px-4 py-2 text-sm font-semibold bg-navy-500 text-white rounded-lg flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            New
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-navy-50 border-b border-slate-200">
+              <tr>
+                <th class="px-4 py-3 text-left"><input type="checkbox" class="rounded accent-navy-600" /></th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-navy-600 uppercase tracking-wide">Project <svg class="w-3 h-3 inline ml-1 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg></th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-navy-600 uppercase tracking-wide">Owner</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-navy-600 uppercase tracking-wide">Status</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-navy-600 uppercase tracking-wide">Progress</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-navy-600 uppercase tracking-wide">Due</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-navy-600 uppercase tracking-wide">Priority</th>
+                <th class="px-4 py-3"></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr class="table-row">
+                <td class="px-4 py-3.5"><input type="checkbox" checked class="rounded accent-navy-600" /></td>
+                <td class="px-4 py-3.5">
+                  <div class="font-medium text-navy-700">Design System v2</div>
+                  <div class="text-xs text-slate-400">UI / Frontend</div>
+                </td>
+                <td class="px-4 py-3.5">
+                  <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-navy-500 flex items-center justify-center text-white text-xs font-bold">JD</div>
+                    <span class="text-slate-600">Jane D.</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3.5"><span class="chip bg-emerald-50 text-emerald-700 border border-emerald-200">● Active</span></td>
+                <td class="px-4 py-3.5">
+                  <div class="flex items-center gap-2">
+                    <div class="w-24 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div class="h-full bg-navy-500 rounded-full" style="width:72%"></div>
+                    </div>
+                    <span class="text-xs text-slate-500">72%</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3.5 text-slate-500">Mar 28</td>
+                <td class="px-4 py-3.5"><span class="chip bg-scarlet-50 text-scarlet-600">High</span></td>
+                <td class="px-4 py-3.5 text-right">
+                  <button class="text-slate-400 hover:text-navy-600 px-2 py-1 rounded-lg hover:bg-slate-100">⋯</button>
+                </td>
+              </tr>
+              <tr class="table-row">
+                <td class="px-4 py-3.5"><input type="checkbox" class="rounded accent-navy-600" /></td>
+                <td class="px-4 py-3.5">
+                  <div class="font-medium text-navy-700">API Integration</div>
+                  <div class="text-xs text-slate-400">Backend</div>
+                </td>
+                <td class="px-4 py-3.5">
+                  <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-scarlet-500 flex items-center justify-center text-white text-xs font-bold">AK</div>
+                    <span class="text-slate-600">Alex K.</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3.5"><span class="chip bg-amber-50 text-amber-700 border border-amber-200">● Review</span></td>
+                <td class="px-4 py-3.5">
+                  <div class="flex items-center gap-2">
+                    <div class="w-24 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div class="h-full bg-amber-400 rounded-full" style="width:45%"></div>
+                    </div>
+                    <span class="text-xs text-slate-500">45%</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3.5 text-slate-500">Apr 12</td>
+                <td class="px-4 py-3.5"><span class="chip bg-navy-50 text-navy-600">Med</span></td>
+                <td class="px-4 py-3.5 text-right"><button class="text-slate-400 hover:text-navy-600 px-2 py-1 rounded-lg hover:bg-slate-100">⋯</button></td>
+              </tr>
+              <tr class="table-row">
+                <td class="px-4 py-3.5"><input type="checkbox" class="rounded accent-navy-600" /></td>
+                <td class="px-4 py-3.5">
+                  <div class="font-medium text-navy-700">Mobile App</div>
+                  <div class="text-xs text-slate-400">iOS / Android</div>
+                </td>
+                <td class="px-4 py-3.5">
+                  <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold">MR</div>
+                    <span class="text-slate-600">Maya R.</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3.5"><span class="chip bg-slate-100 text-slate-600 border border-slate-200">● Paused</span></td>
+                <td class="px-4 py-3.5">
+                  <div class="flex items-center gap-2">
+                    <div class="w-24 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div class="h-full bg-slate-400 rounded-full" style="width:20%"></div>
+                    </div>
+                    <span class="text-xs text-slate-500">20%</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3.5 text-slate-500">Jun 01</td>
+                <td class="px-4 py-3.5"><span class="chip bg-slate-100 text-slate-500">Low</span></td>
+                <td class="px-4 py-3.5 text-right"><button class="text-slate-400 hover:text-navy-600 px-2 py-1 rounded-lg hover:bg-slate-100">⋯</button></td>
+              </tr>
+              <tr class="table-row bg-scarlet-50/30">
+                <td class="px-4 py-3.5"><input type="checkbox" class="rounded accent-navy-600" /></td>
+                <td class="px-4 py-3.5">
+                  <div class="font-medium text-navy-700">Security Audit</div>
+                  <div class="text-xs text-slate-400">Compliance</div>
+                </td>
+                <td class="px-4 py-3.5">
+                  <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-white text-xs font-bold">TP</div>
+                    <span class="text-slate-600">Tom P.</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3.5"><span class="chip bg-scarlet-50 text-scarlet-700 border border-scarlet-200">● Overdue</span></td>
+                <td class="px-4 py-3.5">
+                  <div class="flex items-center gap-2">
+                    <div class="w-24 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div class="h-full bg-scarlet-500 rounded-full" style="width:88%"></div>
+                    </div>
+                    <span class="text-xs text-scarlet-500 font-semibold">88%</span>
+                  </div>
+                </td>
+                <td class="px-4 py-3.5 text-scarlet-500 font-medium">Mar 20 !</td>
+                <td class="px-4 py-3.5"><span class="chip bg-scarlet-500 text-white">Critical</span></td>
+                <td class="px-4 py-3.5 text-right"><button class="text-slate-400 hover:text-navy-600 px-2 py-1 rounded-lg hover:bg-slate-100">⋯</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Pagination -->
+        <div class="px-5 py-4 border-t border-slate-200 flex items-center justify-between flex-wrap gap-3">
+          <p class="text-sm text-slate-500">Showing <strong>1–4</strong> of <strong>48</strong> projects</p>
+          <div class="flex items-center gap-1">
+            <button class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 text-slate-400 hover:bg-slate-50">← Prev</button>
+            <button class="px-3 py-1.5 text-sm rounded-lg bg-navy-500 text-white font-semibold">1</button>
+            <button class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">2</button>
+            <button class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">3</button>
+            <span class="px-2 text-slate-400">…</span>
+            <button class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">12</button>
+            <button class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Next →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── AVATARS & TEAMS ─────────────────────────────────── -->
+    <section>
+      <p class="section-label">Avatars</p>
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="flex flex-wrap gap-6 items-end">
+          <!-- Sizes -->
+          <div class="space-y-2">
+            <p class="text-xs font-mono text-slate-400">Sizes</p>
+            <div class="flex items-end gap-3">
+              <div class="w-6 h-6 rounded-full bg-navy-500 flex items-center justify-center text-white text-xs font-bold">J</div>
+              <div class="w-8 h-8 rounded-full bg-navy-500 flex items-center justify-center text-white text-xs font-bold">JD</div>
+              <div class="w-10 h-10 rounded-full bg-navy-500 flex items-center justify-center text-white text-sm font-bold">JD</div>
+              <div class="w-12 h-12 rounded-full bg-navy-500 flex items-center justify-center text-white text-base font-bold">JD</div>
+              <div class="w-16 h-16 rounded-full bg-navy-500 flex items-center justify-center text-white text-xl font-bold">JD</div>
+            </div>
+          </div>
+          <!-- Colors -->
+          <div class="space-y-2">
+            <p class="text-xs font-mono text-slate-400">Colors</p>
+            <div class="flex items-center gap-2">
+              <div class="w-10 h-10 rounded-full bg-navy-500 flex items-center justify-center text-white text-sm font-bold">JD</div>
+              <div class="w-10 h-10 rounded-full bg-scarlet-500 flex items-center justify-center text-white text-sm font-bold">AK</div>
+              <div class="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white text-sm font-bold">MR</div>
+              <div class="w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center text-white text-sm font-bold">TP</div>
+              <div class="w-10 h-10 rounded-full bg-violet-500 flex items-center justify-center text-white text-sm font-bold">KL</div>
+            </div>
+          </div>
+          <!-- Shapes -->
+          <div class="space-y-2">
+            <p class="text-xs font-mono text-slate-400">Shapes</p>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-navy-500 flex items-center justify-center text-white text-sm font-bold">JD</div>
+              <div class="w-10 h-10 rounded-xl bg-scarlet-500 flex items-center justify-center text-white text-sm font-bold">AK</div>
+              <div class="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center text-white text-sm font-bold">MR</div>
+            </div>
+          </div>
+          <!-- With badge -->
+          <div class="space-y-2">
+            <p class="text-xs font-mono text-slate-400">With Status</p>
+            <div class="flex items-center gap-3">
+              <div class="relative">
+                <div class="w-10 h-10 rounded-full bg-navy-500 flex items-center justify-center text-white text-sm font-bold">JD</div>
+                <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-white rounded-full"></span>
+              </div>
+              <div class="relative">
+                <div class="w-10 h-10 rounded-full bg-scarlet-500 flex items-center justify-center text-white text-sm font-bold">AK</div>
+                <span class="absolute bottom-0 right-0 w-3 h-3 bg-amber-400 border-2 border-white rounded-full"></span>
+              </div>
+              <div class="relative">
+                <div class="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white text-sm font-bold">MR</div>
+                <span class="absolute bottom-0 right-0 w-3 h-3 bg-slate-300 border-2 border-white rounded-full"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Avatar stack -->
+          <div class="space-y-2">
+            <p class="text-xs font-mono text-slate-400">Stacked Group</p>
+            <div class="flex items-center">
+              <div class="w-9 h-9 rounded-full bg-navy-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold z-10">JD</div>
+              <div class="w-9 h-9 rounded-full bg-scarlet-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold -ml-2 z-20">AK</div>
+              <div class="w-9 h-9 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold -ml-2 z-30">MR</div>
+              <div class="w-9 h-9 rounded-full bg-slate-700 border-2 border-white flex items-center justify-center text-white text-xs font-bold -ml-2 z-40">TP</div>
+              <div class="w-9 h-9 rounded-full bg-slate-200 border-2 border-white flex items-center justify-center text-slate-600 text-xs font-bold -ml-2 z-50">+8</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PROGRESS & LOADING ──────────────────────────────── -->
+    <section>
+      <p class="section-label">Progress & Loading</p>
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm grid md:grid-cols-2 gap-8">
+        <!-- Progress bars -->
+        <div class="space-y-4">
+          <p class="text-xs font-mono text-slate-400 mb-4">Progress Bars</p>
+          <div class="space-y-3">
+            <div>
+              <div class="flex justify-between text-xs text-slate-500 mb-1.5"><span>Storage Used</span><span class="font-semibold text-navy-700">72%</span></div>
+              <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-navy-500 rounded-full" style="width:72%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs text-slate-500 mb-1.5"><span>Tasks Complete</span><span class="font-semibold text-emerald-600">91%</span></div>
+              <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-emerald-400 rounded-full" style="width:91%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs text-slate-500 mb-1.5"><span>Budget Spent</span><span class="font-semibold text-scarlet-500">45%</span></div>
+              <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full bg-scarlet-500 rounded-full" style="width:45%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs text-slate-500 mb-1.5"><span>Risk Level</span><span class="font-semibold text-amber-500">Warning</span></div>
+              <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full" style="width:65%;background:linear-gradient(to right,#1d2956,#bc282f)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Spinners & Skeletons -->
+        <div class="space-y-5">
+          <div>
+            <p class="text-xs font-mono text-slate-400 mb-4">Spinners</p>
+            <div class="flex items-center gap-5">
+              <svg class="w-5 h-5 animate-spin text-navy-500" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" class="opacity-75"/></svg>
+              <svg class="w-7 h-7 animate-spin text-scarlet-500" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" class="opacity-75"/></svg>
+              <svg class="w-10 h-10 animate-spin text-navy-700" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" class="opacity-20"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" class="opacity-80"/></svg>
+              <div class="flex gap-1.5 items-center">
+                <div class="w-2 h-2 rounded-full bg-navy-500 animate-bounce" style="animation-delay:0s"></div>
+                <div class="w-2 h-2 rounded-full bg-navy-500 animate-bounce" style="animation-delay:0.15s"></div>
+                <div class="w-2 h-2 rounded-full bg-navy-500 animate-bounce" style="animation-delay:0.3s"></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs font-mono text-slate-400 mb-3">Skeleton Loaders</p>
+            <div class="space-y-2">
+              <div class="flex items-center gap-3">
+                <div class="skeleton w-10 h-10 rounded-full shrink-0"></div>
+                <div class="flex-1 space-y-2">
+                  <div class="skeleton h-3 w-2/3"></div>
+                  <div class="skeleton h-2.5 w-1/2"></div>
+                </div>
+              </div>
+              <div class="skeleton h-3 w-full rounded"></div>
+              <div class="skeleton h-3 w-5/6 rounded"></div>
+              <div class="skeleton h-3 w-4/6 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TABS ────────────────────────────────────────────── -->
+    <section>
+      <p class="section-label">Tabs</p>
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+        <!-- Underline tabs -->
+        <div>
+          <p class="text-xs font-mono text-slate-400 mb-3">Underline</p>
+          <div class="border-b border-slate-200 flex gap-1">
+            <button class="px-4 py-2.5 text-sm font-semibold text-navy-600 border-b-2 border-navy-500 -mb-px">Overview</button>
+            <button class="px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-navy-600 border-b-2 border-transparent -mb-px">Members</button>
+            <button class="px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-navy-600 border-b-2 border-transparent -mb-px flex items-center gap-1.5">Issues <span class="bg-scarlet-500 text-white text-xs px-1.5 rounded-full">4</span></button>
+            <button class="px-4 py-2.5 text-sm font-medium text-slate-400 cursor-not-allowed">Billing</button>
+          </div>
+          <div class="pt-4 text-sm text-slate-500">Content for the <strong class="text-navy-600">Overview</strong> tab would appear here.</div>
+        </div>
+        <!-- Pill tabs -->
+        <div>
+          <p class="text-xs font-mono text-slate-400 mb-3">Pill / Segment</p>
+          <div class="inline-flex bg-slate-100 rounded-xl p-1 gap-1">
+            <button class="px-4 py-2 text-sm font-semibold bg-white text-navy-700 rounded-lg shadow-sm">Monthly</button>
+            <button class="px-4 py-2 text-sm font-medium text-slate-500 rounded-lg hover:bg-white/50">Quarterly</button>
+            <button class="px-4 py-2 text-sm font-medium text-slate-500 rounded-lg hover:bg-white/50">Annual</button>
+          </div>
+        </div>
+        <!-- Icon tabs -->
+        <div>
+          <p class="text-xs font-mono text-slate-400 mb-3">With Icons</p>
+          <div class="flex gap-1 bg-navy-50 rounded-xl p-1">
+            <button class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-semibold bg-navy-500 text-white rounded-lg">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+              List
+            </button>
+            <button class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-500 rounded-lg hover:bg-white">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+              Grid
+            </button>
+            <button class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-500 rounded-lg hover:bg-white">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Chart
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ACCORDION ───────────────────────────────────────── -->
+    <section>
+      <p class="section-label">Accordion / Disclosure</p>
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-200">
+        <div class="px-5 py-4">
+          <div class="flex items-center justify-between cursor-pointer">
+            <span class="font-semibold text-navy-700 text-sm">What is Korus?</span>
+            <svg class="w-5 h-5 text-scarlet-500 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+          <p class="text-sm text-slate-500 mt-3">Korus is a collaborative project management platform built for modern teams. It combines task tracking, analytics, and communication in a single workspace.</p>
+        </div>
+        <div class="px-5 py-4">
+          <div class="flex items-center justify-between cursor-pointer">
+            <span class="font-semibold text-slate-600 text-sm">How is billing calculated?</span>
+            <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+        <div class="px-5 py-4">
+          <div class="flex items-center justify-between cursor-pointer">
+            <span class="font-semibold text-slate-600 text-sm">Can I export my data?</span>
+            <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+        <div class="px-5 py-4">
+          <div class="flex items-center justify-between cursor-pointer">
+            <span class="font-semibold text-slate-600 text-sm">Is SSO / SAML supported?</span>
+            <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── STEPPER ─────────────────────────────────────────── -->
+    <section>
+      <p class="section-label">Stepper / Wizard</p>
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="flex items-center gap-0">
+          <div class="flex flex-col items-center">
+            <div class="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">✓</div>
+            <p class="text-xs text-emerald-600 font-semibold mt-1.5">Account</p>
+          </div>
+          <div class="step-connector mx-2 mb-5"></div>
+          <div class="flex flex-col items-center">
+            <div class="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">✓</div>
+            <p class="text-xs text-emerald-600 font-semibold mt-1.5">Profile</p>
+          </div>
+          <div class="step-connector mx-2 mb-5"></div>
+          <div class="flex flex-col items-center">
+            <div class="w-9 h-9 rounded-full bg-navy-500 ring-4 ring-navy-100 flex items-center justify-center text-white font-bold text-sm">3</div>
+            <p class="text-xs text-navy-600 font-semibold mt-1.5">Workspace</p>
+          </div>
+          <div class="flex-1 h-0.5 bg-slate-200 mx-2 mb-5"></div>
+          <div class="flex flex-col items-center">
+            <div class="w-9 h-9 rounded-full border-2 border-slate-300 flex items-center justify-center text-slate-400 font-bold text-sm">4</div>
+            <p class="text-xs text-slate-400 font-medium mt-1.5">Billing</p>
+          </div>
+          <div class="flex-1 h-0.5 bg-slate-200 mx-2 mb-5"></div>
+          <div class="flex flex-col items-center">
+            <div class="w-9 h-9 rounded-full border-2 border-slate-300 flex items-center justify-center text-slate-400 font-bold text-sm">5</div>
+            <p class="text-xs text-slate-400 font-medium mt-1.5">Done</p>
+          </div>
+        </div>
+        <div class="mt-6 p-4 bg-navy-50 rounded-xl border border-navy-100">
+          <h3 class="font-display font-semibold text-navy-700 text-base mb-1">Step 3: Workspace Setup</h3>
+          <p class="text-sm text-slate-500">Configure your workspace name, logo, and invite your first team members to get started.</p>
+        </div>
+        <div class="flex justify-between mt-5">
+          <button class="px-5 py-2.5 text-sm font-medium rounded-lg border border-slate-300 text-slate-600">← Back</button>
+          <button class="px-5 py-2.5 text-sm font-semibold rounded-lg bg-navy-500 text-white">Continue →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TIMELINE ────────────────────────────────────────── -->
+    <section>
+      <p class="section-label">Timeline / Activity Feed</p>
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="space-y-0">
+          <!-- Item 1 -->
+          <div class="flex gap-4">
+            <div class="flex flex-col items-center">
+              <div class="timeline-dot accent"></div>
+              <div class="w-0.5 bg-slate-200 flex-1 mt-1"></div>
+            </div>
+            <div class="pb-6">
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="text-sm font-semibold text-navy-700">Jane Doe</span>
+                <span class="text-xs text-slate-400">pushed 3 commits</span>
+                <span class="chip bg-scarlet-50 text-scarlet-600 text-xs">main</span>
+              </div>
+              <p class="text-xs text-slate-400">2 minutes ago</p>
+            </div>
+          </div>
+          <!-- Item 2 -->
+          <div class="flex gap-4">
+            <div class="flex flex-col items-center">
+              <div class="timeline-dot filled"></div>
+              <div class="w-0.5 bg-slate-200 flex-1 mt-1"></div>
+            </div>
+            <div class="pb-6">
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="text-sm font-semibold text-navy-700">Alex Kim</span>
+                <span class="text-xs text-slate-400">opened pull request</span>
+                <span class="text-xs text-navy-500 font-medium">#142 — Redesign modal</span>
+              </div>
+              <p class="text-xs text-slate-400">14 minutes ago</p>
+            </div>
+          </div>
+          <!-- Item 3 -->
+          <div class="flex gap-4">
+            <div class="flex flex-col items-center">
+              <div class="timeline-dot"></div>
+              <div class="w-0.5 bg-slate-200 flex-1 mt-1"></div>
+            </div>
+            <div class="pb-6">
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="text-sm font-semibold text-navy-700">Maya R.</span>
+                <span class="text-xs text-slate-400">closed issue</span>
+                <span class="text-xs text-emerald-600 font-medium">#98 — Fix login redirect</span>
+              </div>
+              <p class="text-xs text-slate-400">1 hour ago</p>
+            </div>
+          </div>
+          <!-- Item 4 -->
+          <div class="flex gap-4">
+            <div class="flex flex-col items-center">
+              <div class="timeline-dot"></div>
+            </div>
+            <div>
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="text-sm font-semibold text-navy-700">Tom P.</span>
+                <span class="text-xs text-slate-400">deployed</span>
+                <span class="chip bg-emerald-50 text-emerald-700">v2.4.1 → Production</span>
+              </div>
+              <p class="text-xs text-slate-400">3 hours ago</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CARDS ───────────────────────────────────────────── -->
+    <section>
+      <p class="section-label">Content Cards</p>
+      <div class="grid md:grid-cols-3 gap-5">
+        <!-- Profile card -->
+        <div class="hover-card bg-white rounded-2xl border border-slate-200 p-5 shadow-sm text-center">
+          <div class="w-16 h-16 rounded-2xl bg-navy-500 flex items-center justify-center text-white text-xl font-bold mx-auto avatar-ring mb-3">JD</div>
+          <h3 class="font-display font-bold text-navy-700">Jane Doe</h3>
+          <p class="text-xs text-scarlet-500 font-semibold uppercase tracking-wide mt-0.5">Lead Designer</p>
+          <p class="text-sm text-slate-500 mt-2">Creating beautiful systems and making teams happy since 2018.</p>
+          <div class="flex justify-center gap-4 mt-4 pt-4 border-t border-slate-100">
+            <div class="text-center"><p class="font-bold text-navy-700 text-lg font-display">42</p><p class="text-xs text-slate-400">Projects</p></div>
+            <div class="text-center"><p class="font-bold text-navy-700 text-lg font-display">1.2k</p><p class="text-xs text-slate-400">Commits</p></div>
+            <div class="text-center"><p class="font-bold text-navy-700 text-lg font-display">98%</p><p class="text-xs text-slate-400">Approval</p></div>
+          </div>
+          <div class="flex gap-2 mt-4">
+            <button class="flex-1 py-2 text-xs font-semibold bg-navy-500 text-white rounded-lg">Follow</button>
+            <button class="flex-1 py-2 text-xs font-semibold border border-slate-300 text-slate-600 rounded-lg">Message</button>
+          </div>
+        </div>
+
+        <!-- Pricing card -->
+        <div class="hover-card bg-navy-500 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10"></div>
+          <span class="chip bg-scarlet-500 text-white mb-4 inline-block">Most Popular</span>
+          <h3 class="font-display font-bold text-white text-xl">Pro Plan</h3>
+          <p class="text-white/60 text-sm mt-1">For growing teams</p>
+          <div class="flex items-end gap-1 mt-4 mb-5">
+            <span class="text-4xl font-display font-bold text-white">$49</span>
+            <span class="text-white/60 text-sm mb-1">/mo per seat</span>
+          </div>
+          <ul class="space-y-2 mb-5">
+            <li class="flex items-center gap-2 text-sm text-white/80"><span class="text-emerald-400">✓</span> Unlimited projects</li>
+            <li class="flex items-center gap-2 text-sm text-white/80"><span class="text-emerald-400">✓</span> Advanced analytics</li>
+            <li class="flex items-center gap-2 text-sm text-white/80"><span class="text-emerald-400">✓</span> SSO & SAML</li>
+            <li class="flex items-center gap-2 text-sm text-white/80"><span class="text-emerald-400">✓</span> Priority support</li>
+          </ul>
+          <button class="w-full py-2.5 font-semibold text-sm bg-scarlet-500 text-white rounded-xl hover:bg-scarlet-600 transition">Get Started</button>
+        </div>
+
+        <!-- Notification card -->
+        <div class="hover-card bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="bg-navy-50 px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+            <h3 class="font-semibold text-navy-700 text-sm">Notifications</h3>
+            <span class="chip bg-scarlet-500 text-white">5 new</span>
+          </div>
+          <div class="divide-y divide-slate-100">
+            <div class="px-5 py-3.5 flex items-start gap-3 bg-navy-50/50">
+              <div class="w-8 h-8 rounded-xl bg-scarlet-500 flex items-center justify-center text-white text-xs font-bold shrink-0">AK</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-navy-700 truncate">Alex mentioned you in PR #142</p>
+                <p class="text-xs text-slate-400">2m ago</p>
+              </div>
+              <div class="w-2 h-2 rounded-full bg-scarlet-500 shrink-0 mt-2"></div>
+            </div>
+            <div class="px-5 py-3.5 flex items-start gap-3 bg-navy-50/50">
+              <div class="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white text-xs font-bold shrink-0">MR</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-navy-700 truncate">Maya approved your design</p>
+                <p class="text-xs text-slate-400">14m ago</p>
+              </div>
+              <div class="w-2 h-2 rounded-full bg-scarlet-500 shrink-0 mt-2"></div>
+            </div>
+            <div class="px-5 py-3.5 flex items-start gap-3">
+              <div class="w-8 h-8 rounded-xl bg-amber-400 flex items-center justify-center text-white text-xs font-bold shrink-0">SY</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm text-navy-700 truncate">Deployment to production complete</p>
+                <p class="text-xs text-slate-400">1h ago</p>
+              </div>
+            </div>
+          </div>
+          <div class="px-5 py-3 border-t border-slate-100 text-center">
+            <a href="#" class="text-xs text-scarlet-500 font-semibold hover:underline">View all notifications →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TOOLTIP & DROPDOWN ──────────────────────────────── -->
+    <section>
+      <p class="section-label">Tooltips & Dropdowns</p>
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-wrap gap-8 items-start">
+        <!-- Tooltip variants -->
+        <div class="space-y-2">
+          <p class="text-xs font-mono text-slate-400 mb-3">Tooltip Styles</p>
+          <div class="flex items-center gap-4 flex-wrap">
+            <div class="relative group">
+              <button class="px-4 py-2 text-sm font-medium bg-slate-100 rounded-lg text-slate-700">Hover me (top)</button>
+              <div class="absolute -top-9 left-1/2 -translate-x-1/2 bg-navy-700 text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap pointer-events-none opacity-100 shadow-lg">
+                This is a tooltip
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-navy-700"></div>
+              </div>
+            </div>
+            <div class="relative">
+              <button class="px-4 py-2 text-sm font-medium bg-scarlet-50 border border-scarlet-200 rounded-lg text-scarlet-700">Warning tip</button>
+              <div class="absolute -top-9 left-1/2 -translate-x-1/2 bg-scarlet-600 text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap shadow-lg">
+                This action is irreversible!
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-scarlet-600"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dropdown -->
+        <div class="space-y-2">
+          <p class="text-xs font-mono text-slate-400 mb-3">Dropdown Menu</p>
+          <div class="relative">
+            <button class="px-4 py-2 text-sm font-medium border border-slate-300 rounded-lg flex items-center gap-2 text-slate-700 bg-white">
+              Actions
+              <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="absolute top-full left-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl py-1.5 w-48 z-10">
+              <a href="#" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                Edit
+              </a>
+              <a href="#" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                Duplicate
+              </a>
+              <a href="#" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50">
+                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Export
+              </a>
+              <div class="h-px bg-slate-100 my-1.5 mx-2"></div>
+              <a href="#" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-scarlet-600 hover:bg-scarlet-50">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                Delete
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── EMPTY STATES ────────────────────────────────────── -->
+    <section>
+      <p class="section-label">Empty States</p>
+      <div class="grid md:grid-cols-2 gap-5">
+        <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center shadow-sm">
+          <div class="w-16 h-16 rounded-2xl bg-navy-50 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-navy-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          </div>
+          <h3 class="font-display font-bold text-navy-700 text-base">No projects yet</h3>
+          <p class="text-sm text-slate-400 mt-1 mb-4">Create your first project to start collaborating with your team.</p>
+          <button class="px-5 py-2.5 text-sm font-semibold bg-navy-500 text-white rounded-lg">+ New Project</button>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center shadow-sm">
+          <div class="w-16 h-16 rounded-2xl bg-scarlet-50 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-scarlet-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+          <h3 class="font-display font-bold text-navy-700 text-base">No results found</h3>
+          <p class="text-sm text-slate-400 mt-1 mb-4">Try adjusting your search or filter to find what you're looking for.</p>
+          <button class="px-5 py-2.5 text-sm font-semibold border border-slate-300 text-slate-600 rounded-lg">Clear Filters</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TYPOGRAPHY ──────────────────────────────────────── -->
+    <section>
+      <p class="section-label">Typography</p>
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="grid md:grid-cols-2 gap-8">
+          <div class="space-y-4">
+            <div>
+              <p class="text-xs font-mono text-slate-400 mb-2">Display — Playfair Display</p>
+              <h1 class="font-display text-4xl font-black text-navy-700">Heading One</h1>
+              <h2 class="font-display text-3xl font-bold text-navy-600">Heading Two</h2>
+              <h3 class="font-display text-2xl font-semibold text-navy-600">Heading Three</h3>
+              <h4 class="font-display text-xl font-semibold text-navy-500">Heading Four</h4>
+            </div>
+            <div>
+              <p class="text-xs font-mono text-slate-400 mb-2">Gradient & Accent Text</p>
+              <p class="font-display text-3xl font-bold gradient-text">Design That Moves</p>
+              <p class="text-scarlet-500 font-semibold">Red accent text for emphasis</p>
+            </div>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <p class="text-xs font-mono text-slate-400 mb-2">Body — DM Sans</p>
+              <p class="text-base text-slate-700 leading-relaxed">Large body text with comfortable line height for reading long-form content on screen. Designed for clarity and legibility.</p>
+              <p class="text-sm text-slate-500 mt-2">Small body text for supporting content, captions, and supplementary information that aids understanding.</p>
+              <p class="text-xs text-slate-400 mt-2">Extra small for metadata, labels, and fine print. Use sparingly to maintain visual hierarchy.</p>
+            </div>
+            <div>
+              <p class="text-xs font-mono text-slate-400 mb-2">Monospace — DM Mono</p>
+              <code class="font-mono text-sm bg-navy-50 border border-navy-100 text-navy-700 px-3 py-2 rounded-lg block">const api = new Korus({ key: 'sk-...' });</code>
+            </div>
+            <div>
+              <p class="text-xs font-mono text-slate-400 mb-2">Links & Emphasis</p>
+              <p class="text-sm text-slate-600">Visit <a href="#" class="text-scarlet-500 underline underline-offset-2 hover:text-scarlet-700">documentation</a> for more. Use <strong class="text-navy-700">bold</strong> for importance, <em class="text-slate-500">italics</em> for tone, and <mark class="bg-amber-100 text-amber-800 px-1 rounded">highlight</mark> for calling out specifics.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── COLOR PALETTE ───────────────────────────────────── -->
+    <section>
+      <p class="section-label">Color System</p>
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+        <div class="space-y-4">
+          <!-- Navy scale -->
+          <div>
+            <p class="text-xs font-mono text-slate-400 mb-2">Primary — Navy #1d2956</p>
+            <div class="flex rounded-xl overflow-hidden h-12">
+              <div class="flex-1 bg-navy-50 flex items-end pb-1 justify-center"><span class="text-xs text-navy-300 font-mono">50</span></div>
+              <div class="flex-1 bg-navy-100 flex items-end pb-1 justify-center"><span class="text-xs text-navy-400 font-mono">100</span></div>
+              <div class="flex-1 bg-navy-200 flex items-end pb-1 justify-center"><span class="text-xs text-navy-500 font-mono">200</span></div>
+              <div class="flex-1 bg-navy-300 flex items-end pb-1 justify-center"><span class="text-xs text-white font-mono">300</span></div>
+              <div class="flex-1 bg-navy-400 flex items-end pb-1 justify-center"><span class="text-xs text-white font-mono">400</span></div>
+              <div class="flex-1 bg-navy-500 flex items-end pb-1 justify-center"><span class="text-xs text-white font-bold font-mono">500</span></div>
+              <div class="flex-1 bg-navy-600 flex items-end pb-1 justify-center"><span class="text-xs text-white font-mono">600</span></div>
+              <div class="flex-1 bg-navy-700 flex items-end pb-1 justify-center"><span class="text-xs text-white font-mono">700</span></div>
+              <div class="flex-1 bg-navy-800 flex items-end pb-1 justify-center"><span class="text-xs text-white font-mono">800</span></div>
+              <div class="flex-1 bg-navy-900 flex items-end pb-1 justify-center"><span class="text-xs text-white font-mono">900</span></div>
+            </div>
+          </div>
+          <!-- Scarlet scale -->
+          <div>
+            <p class="text-xs font-mono text-slate-400 mb-2">Accent — Scarlet #bc282f</p>
+            <div class="flex rounded-xl overflow-hidden h-12">
+              <div class="flex-1 bg-scarlet-50 flex items-end pb-1 justify-center"><span class="text-xs text-scarlet-300 font-mono">50</span></div>
+              <div class="flex-1 bg-scarlet-100 flex items-end pb-1 justify-center"><span class="text-xs text-scarlet-400 font-mono">100</span></div>
+              <div class="flex-1 bg-scarlet-200 flex items-end pb-1 justify-center"><span class="text-xs text-scarlet-600 font-mono">200</span></div>
+              <div class="flex-1 bg-scarlet-300 flex items-end pb-1 justify-center"><span class="text-xs text-white font-mono">300</span></div>
+              <div class="flex-1 bg-scarlet-400 flex items-end pb-1 justify-center"><span class="text-xs text-white font-mono">400</span></div>
+              <div class="flex-1 bg-scarlet-500 flex items-end pb-1 justify-center"><span class="text-xs text-white font-bold font-mono">500</span></div>
+              <div class="flex-1 bg-scarlet-600 flex items-end pb-1 justify-center"><span class="text-xs text-white font-mono">600</span></div>
+              <div class="flex-1 bg-scarlet-700 flex items-end pb-1 justify-center"><span class="text-xs text-white font-mono">700</span></div>
+              <div class="flex-1 bg-scarlet-800 flex items-end pb-1 justify-center"><span class="text-xs text-white font-mono">800</span></div>
+              <div class="flex-1 bg-scarlet-900 flex items-end pb-1 justify-center"><span class="text-xs text-white font-mono">900</span></div>
+            </div>
+          </div>
+          <!-- Semantic -->
+          <div>
+            <p class="text-xs font-mono text-slate-400 mb-2">Semantic Colors</p>
+            <div class="flex gap-3 flex-wrap">
+              <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-emerald-500"></div><span class="text-xs font-mono text-slate-600">Success</span></div>
+              <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-amber-400"></div><span class="text-xs font-mono text-slate-600">Warning</span></div>
+              <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-scarlet-500"></div><span class="text-xs font-mono text-slate-600">Error</span></div>
+              <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-navy-500"></div><span class="text-xs font-mono text-slate-600">Info</span></div>
+              <div class="flex items-center gap-2"><div class="w-8 h-8 rounded-lg bg-slate-200 border border-slate-300"></div><span class="text-xs font-mono text-slate-600">Neutral</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FOOTER CTA ──────────────────────────────────────── -->
+    <section class="rounded-2xl overflow-hidden relative" style="background:linear-gradient(135deg,#1d2956 0%,#2a3870 60%,#bc282f 100%)">
+      <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(circle at 1px 1px, white 1px, transparent 0);background-size:30px 30px"></div>
+      <div class="relative px-10 py-14 text-center">
+        <span class="chip bg-white/10 text-white border border-white/20 mb-4 inline-block">Design System Ready</span>
+        <h2 class="font-display text-4xl font-black text-white mb-3">Build Something Remarkable</h2>
+        <p class="text-white/70 text-base max-w-xl mx-auto mb-8">Every component you need, perfectly themed with navy & scarlet. Start building your product today with this complete design reference.</p>
+        <div class="flex justify-center gap-3 flex-wrap">
+          <button class="px-7 py-3 font-bold text-sm bg-scarlet-500 text-white rounded-xl hover:bg-scarlet-600 transition shadow-lg">Get Started Free</button>
+          <button class="px-7 py-3 font-semibold text-sm bg-white/10 text-white rounded-xl hover:bg-white/20 transition border border-white/20">View Documentation →</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════════ FOOTER ════════════════════ -->
+<footer class="bg-navy-900 text-white mt-10">
+  <div class="max-w-screen-2xl mx-auto px-6 py-12 grid md:grid-cols-4 gap-8">
+    <div>
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-8 h-8 bg-scarlet-500 rounded-lg flex items-center justify-center font-display font-bold text-white text-sm">K</div>
+        <span class="font-display font-bold text-lg">Korus</span>
+      </div>
+      <p class="text-sm text-white/50 leading-relaxed">Collaborative project management for high-performance teams.</p>
+    </div>
+    <div>
+      <p class="text-xs font-mono text-white/40 uppercase tracking-widest mb-3">Product</p>
+      <ul class="space-y-2">
+        <li><a href="#" class="text-sm text-white/70 hover:text-white transition">Features</a></li>
+        <li><a href="#" class="text-sm text-white/70 hover:text-white transition">Pricing</a></li>
+        <li><a href="#" class="text-sm text-white/70 hover:text-white transition">Changelog</a></li>
+        <li><a href="#" class="text-sm text-scarlet-400 hover:text-scarlet-300 transition">What's New ↗</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="text-xs font-mono text-white/40 uppercase tracking-widest mb-3">Company</p>
+      <ul class="space-y-2">
+        <li><a href="#" class="text-sm text-white/70 hover:text-white transition">About</a></li>
+        <li><a href="#" class="text-sm text-white/70 hover:text-white transition">Blog</a></li>
+        <li><a href="#" class="text-sm text-white/70 hover:text-white transition">Careers</a></li>
+        <li><a href="#" class="text-sm text-white/70 hover:text-white transition">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="text-xs font-mono text-white/40 uppercase tracking-widest mb-3">Stay Updated</p>
+      <div class="flex gap-2">
+        <input type="email" placeholder="you@email.com" class="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-scarlet-400" />
+        <button class="px-3 py-2 bg-scarlet-500 rounded-lg text-sm font-semibold text-white hover:bg-scarlet-600 transition">→</button>
+      </div>
+      <p class="text-xs text-white/30 mt-2">No spam. Unsubscribe anytime.</p>
+    </div>
+  </div>
+  <div class="border-t border-white/10">
+    <div class="max-w-screen-2xl mx-auto px-6 py-5 flex items-center justify-between flex-wrap gap-3">
+      <p class="text-xs text-white/40">© 2026 Korus Inc. All rights reserved.</p>
+      <div class="flex gap-4">
+        <a href="#" class="text-xs text-white/40 hover:text-white/80 transition">Privacy</a>
+        <a href="#" class="text-xs text-white/40 hover:text-white/80 transition">Terms</a>
+        <a href="#" class="text-xs text-white/40 hover:text-white/80 transition">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

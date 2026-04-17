@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${SPRING_DATASOURCE_DB}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: jdbc:postgresql://${POSTGRES_USER}
+    username: ${POSTGRES_PASSWORD}
+    password: ${POSTGRES_DB}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -33,15 +33,19 @@ spring:
       name: user
       password: secret
 
+  docker:
+    compose:
+      file: compose.dev.yml
+
 auth:
   jwt:
     secret: ${AUTH_JWT_SECRET}
     expiration:
-      milliseconds: ${AUTH_JWT_EXPIRATION_MILLISECONDS}
+      minutes: ${AUTH_JWT_EXPIRATION_MINUTES}
   verification:
-    expirationInMinutes: 15
+    expiration:
+      minutes: ${AUTH_VERIFICATION_EXPIRATION_MINUTES}
   disable-login-rate-limit: true
-
 logging:
   level:
     org.springframework.security: DEBUG

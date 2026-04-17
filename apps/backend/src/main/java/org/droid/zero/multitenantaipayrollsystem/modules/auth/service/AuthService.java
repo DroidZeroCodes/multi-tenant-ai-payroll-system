@@ -15,5 +15,7 @@ public interface AuthService {
 
     AuthTokenDto createToken(HttpServletRequest request);
 
+    AuthTokenDto validateToken(HttpServletRequest request);
+
     void invalidateToken(HttpServletRequest request);
 }

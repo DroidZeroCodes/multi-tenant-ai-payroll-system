@@ -7,13 +7,6 @@ spring:
     resources:
       add-mappings: false
 
-api:
-  endpoint:
-    base-url: /api/v1
-
-server:
-  port: 8080
-
 management:
   endpoints:
     web:
@@ -48,6 +41,12 @@ management:
   tracing:
     sampling:
       probability: 0.1
+api:
+  endpoint:
+    base-url: /api/v1
+
+server:
+  port: 8080
 
 info:
   app:

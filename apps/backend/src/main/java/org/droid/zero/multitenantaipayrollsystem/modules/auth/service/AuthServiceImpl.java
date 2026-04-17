@@ -79,8 +79,30 @@ public class AuthServiceImpl extends BaseService implements AuthService {
         // Create jwt
         String token = tokenService.generateToken(authentication, tenantId);
 
-        return new AuthTokenDto(token);
+        User user = (User) authentication.getPrincipal();
+
+        return new AuthTokenDto(user.getId(), user.getFirstName(), user.getLastName(), user.getUsername(), token);
     }
+
+    @Override
+    public AuthTokenDto validateToken(HttpServletRequest request) {
+        //Extract the token from the request
+        String token = extractJwt(request);
+
+        //If there is no token, then throw an exception
+        if (token == null || token.isBlank()) throw new BadCredentialsException("Invalid token.");
+
+        //Get the user principal
+        User user = getCurrentUser();
+
+        if (user == null) throw new InsufficientAuthenticationException("User is not authenticated.");
+
+        //Validate the token
+        if (!tokenService.isTokenValid(token, user)) throw new BadCredentialsException("Invalid token.");
+
+        return new AuthTokenDto(user.getId(), user.getFirstName(), user.getLastName(), user.getUsername(), token);
+    }
+
 
     @Transactional
     @Override

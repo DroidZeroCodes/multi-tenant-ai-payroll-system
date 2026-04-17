@@ -47,7 +47,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(customBasicAuthenticationEntryPoint)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(rateLimitCheckFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(sessionContextFilter, RateLimitCheckFilter.class)
@@ -74,6 +74,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(getPublicEndpoints().toArray(String[]::new)).permitAll()
+                        .requestMatchers(baseUrl + "/auth/validate").authenticated() //Allow the authentication filter to validate the token
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

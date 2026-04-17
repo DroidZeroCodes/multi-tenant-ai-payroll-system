@@ -27,8 +27,8 @@ public class TokenService {
 
     @Value("${auth.jwt.secret}")
     private String SECRET_KEY;
-    @Value("${auth.jwt.expiration.milliseconds}")
-    private long JWT_EXPIRATION_MILLIS;
+    @Value("${auth.jwt.expiration.minutes}")
+    private long JWT_EXPIRATION_MINUTES;
 
     private final RedisCacheClient redisCacheClient;
 
@@ -63,7 +63,7 @@ public class TokenService {
         return Jwts.builder()
                 .subject(username) // Subject represents the user's username
                 .issuedAt(Date.from(now)) // Issued at represents the time when the token was issued
-                .expiration(Date.from(now.plus(JWT_EXPIRATION_MILLIS, ChronoUnit.MILLIS))) // Expiration represents the time when the token expires
+                .expiration(Date.from(now.plus(JWT_EXPIRATION_MINUTES, ChronoUnit.MINUTES))) // Expiration represents the time when the token expires
                 .claim("employeeId", employeeId) // Additional claim for the employee ID
                 .claim("tenantId", tenantId) // Additional claim for the tenant ID
                 .claim("roles", roles) // Additional claim for the user's roles

@@ -1,3 +1,54 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_USER}
+    username: ${POSTGRES_PASSWORD}
+    password: ${POSTGRES_DB}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migrations
+
+  data:
+    redis:
+      port: 3004
+
+  ai:
+    google:
+      genai:
+        api-key: ${AI_GEMINI_API_KEY}
+        chat:
+          options:
+            model: gemini-2.5-flash-lite
+            temperature: 0.5
+
+  security:
+    user:
+      name: user
+      password: secret
+
+  docker:
+    compose:
+      file: compose.dev.yml
+
 auth:
   jwt:
     secret: ${AUTH_JWT_SECRET}
+    expiration:
+      minutes: ${AUTH_JWT_EXPIRATION_MINUTES}
+  verification:
+    expiration:
+      minutes: ${AUTH_VERIFICATION_EXPIRATION_MINUTES}
+  disable-login-rate-limit: true
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.droid.zero.multitenantaipayrollsystem: DEBUG
+    org.hibernate.SQL: ERROR
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
